@@ -107,4 +107,5 @@ Press 'ENTER' to update. Type 'cmds' for commands.
 ![Alt text](https://raw.githubusercontent.com/01mu/minolog/master/Figure_1.png "Title")
 
 **Usage**
+
 Run minolog.exe from your replays folder. The program will parse the .rep files in the same directory and write extracted data to replays.txt. Subsequent executions of minolog.exe will append this file with new .rep file data. 
