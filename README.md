@@ -1,7 +1,8 @@
 # minolog
+## Features
 - Display personal bests, daily history, monthly history, and history per N games for [NullpoMino](https://github.com/nullpomino/nullpomino) replays.
 - Export replay info to a JSON file.
-- Historical charts.
+- Historical charts (Python and matplotlib required).
 ## Output
 ```
 ------------------------
@@ -100,3 +101,5 @@ Time      PPS     Pieces  Finesse  Holds  Name
 0.59 seconds
 Press 'ENTER' to update. Type 'cmds' for commands.
 ```
+## Usage
+Run minolog.exe from your replays folder. The program will parse the .rep files in the same directory and write extracted data to replays.txt. Subsequent executions of minolog.exe will append this file with new .rep file data. 
