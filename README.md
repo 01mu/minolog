@@ -1,4 +1,8 @@
 # minolog
+- Display personal bests, daily history, monthly history, and history per N games for [NullpoMino](https://github.com/nullpomino/nullpomino) replays.
+- Export replay info to a JSON file.
+- Historical charts.
+## Output
 ```
 ------------------------
 NullpoMino Replay Logger
