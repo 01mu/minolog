@@ -298,8 +298,6 @@ int main()
 
         take_input();
         reset();
-
-        system("cls");
     }
 
     return 0;
