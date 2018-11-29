@@ -167,6 +167,10 @@ void set_today_history(int, int &);
 void set_old_day_history(int, int &);
 void set_month_history(int, int &);
 
+void show_cmd_options();
+void make_graph_pern();
+void make_graph_pbs(string &);
+
 vector<rep> replays;
 
 vector<string> replay_names;

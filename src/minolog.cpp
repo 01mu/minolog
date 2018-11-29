@@ -27,6 +27,26 @@ using namespace std;
 
 int main()
 {
+    clock_t t_start;
+
+    int old_day_iter;
+    int month_iter;
+    int today_iter;
+    int per_n_iter;
+    int per_n_set;
+    int pb_iter;
+    int fin_iter;
+
+    int goal;
+    int lines;
+    bool is_big;
+    string mode;
+
+    rep cur_rep;
+
+    double reset_t;
+    double end;
+
     cout.setf(std::ios::fixed, std::ios::floatfield);
     cout << setiosflags(ios::left);
 
@@ -36,49 +56,50 @@ int main()
     {
         replay_names = get_replay_names();
 
-        clock_t tStart = clock();
+        t_start = clock();
 
         cout << "------------------------" << endl
             << "NullpoMino Replay Logger" << endl
             << "Version 1.0" << endl
             << "------------------------" << endl << endl;
 
-        int old_day_iter = 0;
-        int month_iter = 0;
-        int today_iter = 0;
-        int per_n_iter = 0;
-        int per_n_set = 0;
-        int pb_iter = 0;
-        int fin_iter = 0;
+        old_day_iter = 0;
+        month_iter = 0;
+        today_iter = 0;
+        per_n_iter = 0;
+        per_n_set = 0;
+        pb_iter = 0;
+        fin_iter = 0;
 
-        double end;
-        double reset_t = ((double) (clock() - reset_start) / CLOCKS_PER_SEC);
+        reset_t = ((double) (clock() - reset_start) / CLOCKS_PER_SEC);
 
         make_settings_file();
         make_replays_file();
 
-        for(unsigned int j = 0; j < replays.size(); j++)
+        for(int i = 0; i < replays.size(); i++)
         {
-            all_frames_sum += replays[j].frames;
+            cur_rep = replays[i];
+
+            all_frames_sum += cur_rep.frames;
             num_all++;
 
-            int goal = replays[j].goal_type;
-            int lines = replays[j].n_lines;
-            bool is_big = replays[j].big;
-            string mode = replays[j].mode;
+            goal = cur_rep.goal_type;
+            lines = cur_rep.n_lines;
+            is_big = cur_rep.big;
+            mode = cur_rep.mode;
 
-            if(goal == TYPE40 && lines >= 40 && !is_big &&  mode == LINE_RACE)
+            if(goal == TYPE40 && lines >= 40 && !is_big && mode == LINE_RACE)
             {
                 num_40++;
 
-                update_piece_counts(j);
+                update_piece_counts(i);
 
-                set_month_history(j, month_iter);
-                set_old_day_history(j, old_day_iter);
-                set_today_history(j, today_iter);
-                set_per_n_history(j, per_n_set, per_n_iter);
-                set_pb_history(j, pb_iter);
-                set_fin_pb_history(j, fin_iter);
+                set_month_history(i, month_iter);
+                set_old_day_history(i, old_day_iter);
+                set_today_history(i, today_iter);
+                set_per_n_history(i, per_n_set, per_n_iter);
+                set_pb_history(i, pb_iter);
+                set_fin_pb_history(i, fin_iter);
             }
         }
 
@@ -93,10 +114,11 @@ int main()
         output_old_day_history(old_day_to_show);
         output_today_history(today_to_show);
 
-        end = ((double) (clock() - tStart) / CLOCKS_PER_SEC);
+        end = ((double) (clock() - t_start) / CLOCKS_PER_SEC);
 
         cout << endl << endl << end << " seconds";
-        tStart = 0;
+
+        t_start = 0;
 
         if(auto_update == 1)
         {
@@ -110,8 +132,6 @@ int main()
             reset();
             reset_start = clock();
             reset_t = 0;
-
-            continue;
         }
         else
         {

@@ -179,23 +179,15 @@ string convert_date()
     return buffer;
 }
 
+#ifdef _WIN32
 vector<string> get_replay_names()
 {
-    #ifdef _WIN32
     char buffer[MAX_PATH];
 
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
 
     string path = string(buffer).substr(0, pos);
-    #endif
-
-    #ifdef linux
-    char buffer[255];
-    getcwd(buffer, sizeof(buffer));
-
-    string path = string(buffer) + "/";
-    #endif
 
     vector<string> vector;
 
@@ -208,20 +200,11 @@ vector<string> get_replay_names()
         {
             int len = (strlen(ent->d_name));
 
-            #ifdef _WIN32
             if ((strlen(ent->d_name)) > 3 &&
                 !strcmp(ent->d_name + strlen(ent->d_name) - 4, ".rep"))
             {
                 vector.push_back(ent->d_name);
             }
-            #endif
-
-            #ifdef linux
-            if(len > 3 && !strcmp(ent->d_name + len - 4, ".rep"))
-            {
-                vector.push_back(ent->d_name);
-            }
-            #endif
         }
 
         closedir(dir);
@@ -233,6 +216,43 @@ vector<string> get_replay_names()
 
     return vector;
 }
+#endif
+
+#ifdef linux
+vector<string> get_replay_names()
+{
+    char buffer[255];
+    getcwd(buffer, sizeof(buffer));
+
+    string path = string(buffer) + "/";
+
+    vector<string> vector;
+
+    DIR *dir;
+    struct dirent *ent;
+
+    if((dir = opendir(path.c_str())) != NULL)
+    {
+        while((ent = readdir(dir)) != NULL)
+        {
+            int len = (strlen(ent->d_name));
+
+            if(len > 3 && !strcmp(ent->d_name + len - 4, ".rep"))
+            {
+                vector.push_back(ent->d_name);
+            }
+        }
+
+        closedir(dir);
+    }
+    else
+    {
+        perror("");
+    }
+
+    return vector;
+}
+#endif
 
 void check_for_stat(string to_string, rep & temp)
 {
@@ -371,7 +391,7 @@ rep assign_from_replays(string replay)
     temp.kpt = 0;
     temp.finesse = 0;
 
-    char* q;
+    char * q;
 
     while(!fin.eof())
     {
@@ -395,7 +415,7 @@ rep assign_from_replays(string replay)
 
 void make_settings_file()
 {
-    char* q;
+    char * q;
 
     if(ifstream("minolog_settings"))
     {
@@ -456,7 +476,7 @@ void make_settings_file()
 
 void make_replays_file()
 {
-    char* q;
+    char * q;
 
     if(ifstream("minolog_replays"))
     {
@@ -573,17 +593,17 @@ void make_replays_file()
     {
         cout << "Scanning files..." << endl << endl;
 
-        for(unsigned int j = 0; j < replay_names.size(); j++)
+        for(int j = 0; j < replay_names.size(); j++)
         {
             replays.push_back(assign_from_replays(replay_names.at(j)));
         }
 
-        FILE *p_file;
+        FILE * p_file;
         p_file = fopen("minolog_replays", "w");
 
         if(p_file != NULL)
         {
-            for(unsigned int j = 0; j < replays.size(); j++)
+            for(int j = 0; j < replays.size(); j++)
             {
                 rep replay = replays.at(j);
 
@@ -616,19 +636,19 @@ void write_new_replays()
         imported_replays.begin(), imported_replays.end(),
         back_inserter(new_replays));
 
-    unsigned int replays_size = replays.size();
+    int replays_size = replays.size();
 
     if(new_replays.size() > 0)
     {
-        for(unsigned int j = 0; j < new_replays.size(); j++)
+        for(int j = 0; j < new_replays.size(); j++)
         {
-            unsigned int to_begin = replays_size + j;
+            int to_begin = replays_size + j;
             rep replay;
 
             replays.push_back(assign_from_replays(new_replays.at(j)));
             replay = replays.at(to_begin);
 
-            FILE *p_file;
+            FILE * p_file;
             p_file = fopen("minolog_replays", "a");
 
             fprintf(p_file, "%i %f %f %i %i %i %i %f %f %f %i %i %i %i "
@@ -653,11 +673,11 @@ void make_json()
     FILE *p_file;
     p_file = fopen("minolog_json", "w");
 
-    unsigned int replays_size = replays.size();
+    int replays_size = replays.size();
 
     fprintf(p_file, "[");
 
-    for(unsigned int j = 0; j < replays_size; j++)
+    for(int j = 0; j < replays_size; j++)
     {
         rep replay = replays.at(j);
 
@@ -943,13 +963,14 @@ void output_today_history(int today_to_show)
 
 void load_python_graph()
 {
-    FILE* in = popen("python minolog.py", "r");
+    FILE * in = popen("python minolog.py", "r");
     pclose(in);
 }
 
 void make_graph_mode(char const * type)
 {
-    FILE *p_file;
+    FILE * p_file;
+
     p_file = fopen("minolog_graph", "w");
 
     if(p_file != NULL)
@@ -1012,25 +1033,182 @@ void display_header()
 
     cout << setw(45) << "--- Total Statistics ---"
         << "--- 40 Lines Race Statistics ---" << endl;
+
     cout << setw(45) << "Time played: " + output_time(all_frames_sum)
         << "Time played: " + output_time(_40_frames_sum) << endl;
+
     cout << setw(45) << "Average time: " + output_time(all_frames_sum / num_all)
         << "Average time: " + output_time(_40_frames_sum / num_40) << endl;
+
     cout << setw(45) << "# of replays: " + to_string((int) num_all)
         << "# of replays: " + to_string((int) num_40) << endl << endl;
 
     cout << setw(45) << "Oldest: " + first << "< 102 pieces: "
         + to_int(pieces_sub_102) << " ("
         << to_float(pieces_sub_102_per) << "%)" << endl;
+
     cout << setw(45) << "Recent: " + last << "= 102 pieces: "
         + to_int(pieces_102) << " ("
         << to_float(pieces_102_per) << "%)" << endl;
+
     cout << setw(45) << " " << "= 103 pieces: "
         + to_int(pieces_103) << " ("
         << to_float(pieces_103_per) << "%)" << endl;
+
     cout << setw(45) << " " << "> 103 pieces: "
         + to_int(pieces_greater_103) << " ("
         << to_float(pieces_greater_103_per) << "%)" << endl << endl;
+}
+
+void show_cmd_options()
+{
+    cout << endl << setw(20) << "pern 'count'"
+        << ":: set per N count" << endl;
+    cout << setw(20) << "perdts 'count'"
+        << ":: set per days to show" << endl;
+    cout << setw(20) << "pernts 'count'"
+        << ":: set per Ns to show" << endl;
+    cout << setw(20) << "pbs 'count'"
+        << ":: set PBs to show" << endl;
+    cout << setw(20) << "today 'count'"
+        << ":: set today's replays to show" << endl;
+    cout << setw(20) << "old 'count'"
+        << ":: set old day's replays to show" << endl;
+    cout << setw(20) << "month 'count'"
+        << ":: set monthly replays to show" << endl;
+    cout << setw(20) << "finpb 'count'"
+        << ":: set finesse PBs to show" << endl;
+    cout << setw(20) << "autoset 'seconds'"
+        << ":: set automatic update time" << endl << endl;
+    cout << setw(20) << "json"
+        << ":: make json file" << endl << endl;
+    cout << setw(20) << "graph-today"
+        << ":: display today graph" << endl;
+    cout << setw(20) << "graph-pbs"
+        << ":: display pb graph" << endl;
+    cout << setw(20) << "graph-pern"
+        << ":: display per n graph" << endl << endl;
+    cout << setw(20) << "auto"
+        << ":: enable automatic updating" << endl;
+}
+
+void make_graph_pern()
+{
+    FILE *p_file;
+    int size = stats.size();
+    int replays_size;
+    double diff = num_40 - hundred_count;
+    per_n purn;
+    vector<per_n> to_output;
+
+    char const * str = "{\"seconds\":%f, \"pieces_per_second\":%f, "
+        "\"n_piece_locked\":%f, \"frames\":%f, \"n_piece_rotate\":%f, "
+        "\"finesse\":%f, \"n_hold_used\":%f}";
+
+    for(int j = size - 1; j >= 0; j--)
+    {
+        per_n temp;
+
+        if(j == size - 1 && num_40 - hundred_count != 0)
+        {
+            temp.frames = stats[j].frames / diff;
+            temp.pieces_per_second = stats[j].pieces_per_second / diff;
+            temp.n_piece_locked = stats[j].n_piece_locked / diff;
+            temp.finesse = stats[j].finesse / diff;
+            temp.n_hold_used = stats[j].n_hold_used / diff;
+            temp.end_date = stats[j].end_date;
+            temp.n_piece_rotate = stats[j].n_piece_rotate / diff;
+            temp.lower = stats[j].lower;
+
+            to_output.push_back(temp);
+        }
+        else
+        {
+            temp.frames = stats[j].frames / per_n_count;
+            temp.pieces_per_second = stats[j].pieces_per_second / per_n_count;
+            temp.n_piece_locked = stats[j].n_piece_locked / per_n_count;
+            temp.finesse = stats[j].finesse / per_n_count;
+            temp.n_hold_used = stats[j].n_hold_used / per_n_count;
+            temp.end_date = stats[j].end_date;
+            temp.n_piece_rotate = stats[j].n_piece_rotate / per_n_count;
+            temp.lower = stats[j].lower;
+
+            to_output.push_back(temp);
+        }
+    }
+
+    make_graph_mode("graph-pern");
+
+    p_file = fopen("minolog_gdata", "w");
+
+    fprintf(p_file, "[");
+
+    replays_size = to_output.size() - 1;
+
+    for(int j = replays_size; j >= 0; j--)
+    {
+        purn = to_output.at(j);
+
+        fprintf(p_file, str, purn.frames / 60, purn.pieces_per_second,
+            purn.n_piece_locked, purn.frames, purn.n_piece_rotate,
+            purn.finesse, purn.n_hold_used);
+
+        if(j > 0)
+        {
+            fprintf(p_file, ",\n");
+        }
+    }
+
+    fprintf(p_file, "]");
+
+    fclose(p_file);
+}
+
+void make_graph_pbs(string & cmd)
+{
+    FILE * p_file;
+    int replays_size;
+    pb peeb;
+    today td;
+
+    make_graph_mode("graph-pbs");
+
+    p_file = fopen("minolog_gdata", "w");
+
+    if(cmd == "graph-pbs")
+    {
+        replays_size = bests.size();
+    }
+    else
+    {
+        replays_size = todaies.size();
+    }
+
+    fprintf(p_file, "[");
+
+    for(int j = 0; j < replays_size; j++)
+    {
+        if(cmd == "graph-pbs")
+        {
+            peeb = bests.at(j);
+            fprintf(p_file, "{\"seconds\":%f}", peeb.frames / 60);
+        }
+        else
+        {
+            td = todaies.at(j);
+            fprintf(p_file, "{\"seconds\":%f}", td.frames / 60);
+        }
+
+
+        if(j != replays_size - 1)
+        {
+            fprintf(p_file, ",\n");
+        }
+    }
+
+    fprintf(p_file, "]");
+
+    fclose(p_file);
 }
 
 void take_input()
@@ -1052,34 +1230,7 @@ void take_input()
     {
         if(strcmp(q, "cmds") == 0)
         {
-            cout << endl << setw(20) << "pern 'count'"
-                << ":: set per N count" << endl;
-            cout << setw(20) << "perdts 'count'"
-                << ":: set per days to show" << endl;
-            cout << setw(20) << "pernts 'count'"
-                << ":: set per Ns to show" << endl;
-            cout << setw(20) << "pbs 'count'"
-                << ":: set PBs to show" << endl;
-            cout << setw(20) << "today 'count'"
-                << ":: set today's replays to show" << endl;
-            cout << setw(20) << "old 'count'"
-                << ":: set old day's replays to show" << endl;
-            cout << setw(20) << "month 'count'"
-                << ":: set monthly replays to show" << endl;
-            cout << setw(20) << "finpb 'count'"
-                << ":: set finesse PBs to show" << endl;
-            cout << setw(20) << "autoset 'seconds'"
-                << ":: set automatic update time" << endl << endl;
-            cout << setw(20) << "json"
-                << ":: make json file" << endl << endl;
-            cout << setw(20) << "graph-today"
-                << ":: display today graph" << endl;
-            cout << setw(20) << "graph-pbs"
-                << ":: display pb graph" << endl;
-            cout << setw(20) << "graph-pern"
-                << ":: display per n graph" << endl << endl;
-            cout << setw(20) << "auto"
-                << ":: enable automatic updating" << endl;
+            show_cmd_options();
 
             cin.getline(input, 256);
             q = strtok(input, " ");
@@ -1100,7 +1251,7 @@ void take_input()
             }
             else
             {
-                value = (int) strtod(q, NULL);
+                value = strtod(q, NULL);
             }
 
             break;
@@ -1165,128 +1316,15 @@ void take_input()
     else if(cmd == "graph-pern")
     {
         cout << endl << "Loading..." << endl << endl;
-
-        int size = stats.size();
-        double diff = num_40 - hundred_count;
-
-        vector<per_n> to_output;
-
-        for(int j = size - 1; j >= 0; j--)
-        {
-            per_n temp;
-
-            if(j == size - 1 && num_40 - hundred_count != 0)
-            {
-                temp.frames = stats[j].frames / diff;
-                temp.pieces_per_second = stats[j].pieces_per_second / diff;
-                temp.n_piece_locked = stats[j].n_piece_locked / diff;
-                temp.finesse = stats[j].finesse / diff;
-                temp.n_hold_used = stats[j].n_hold_used / diff;
-                temp.end_date = stats[j].end_date;
-                temp.n_piece_rotate = stats[j].n_piece_rotate / diff;
-                temp.lower = stats[j].lower;
-
-                to_output.push_back(temp);
-            }
-            else
-            {
-                temp.frames = stats[j].frames / per_n_count;
-                temp.pieces_per_second = stats[j].pieces_per_second /
-                    per_n_count;
-                temp.n_piece_locked = stats[j].n_piece_locked / per_n_count;
-                temp.finesse = stats[j].finesse / per_n_count;
-                temp.n_hold_used = stats[j].n_hold_used / per_n_count;
-                temp.end_date = stats[j].end_date;
-                temp.n_piece_rotate = stats[j].n_piece_rotate / per_n_count;
-                temp.lower = stats[j].lower;
-
-                to_output.push_back(temp);
-            }
-        }
-
-        make_graph_mode("graph-pern");
-
-        FILE *p_file;
-        p_file = fopen("minolog_gdata", "w");
-
-        int replays_size = to_output.size() - 1;
-
-        fprintf(p_file, "[");
-
-        for(int j = replays_size; j >= 0; j--)
-        {
-            per_n purn = to_output.at(j);
-
-            char const * str = "{\"seconds\":%f, \"pieces_per_second\":%f, "
-                "\"n_piece_locked\":%f, \"frames\":%f, \"n_piece_rotate\":%f, "
-                "\"finesse\":%f, \"n_hold_used\":%f}";
-
-            fprintf(p_file, str, purn.frames / 60, purn.pieces_per_second,
-                purn.n_piece_locked, purn.frames, purn.n_piece_rotate,
-                purn.finesse, purn.n_hold_used);
-
-            if(j > 0)
-            {
-                fprintf(p_file, ",\n");
-            }
-        }
-
-        fprintf(p_file, "]");
-
-        fclose(p_file);
-
+        make_graph_pern();
         cout << "Press 'ENTER' to update." << endl;
-
         load_python_graph();
     }
     else if(cmd == "graph-pbs" || cmd == "graph-today")
     {
         cout << endl << "Loading..." << endl << endl;
-
-        make_graph_mode("graph-pbs");
-
-        FILE *p_file;
-        p_file = fopen("minolog_gdata", "w");
-
-        unsigned int replays_size;
-
-        if(cmd == "graph-pbs")
-        {
-            replays_size = bests.size();
-        }
-        else
-        {
-            replays_size = todaies.size();
-        }
-
-        fprintf(p_file, "[");
-
-        for(unsigned int j = 0; j < replays_size; j++)
-        {
-            if(cmd == "graph-pbs")
-            {
-                pb peeb = bests.at(j);
-                fprintf(p_file, "{\"seconds\":%f}", peeb.frames / 60);
-            }
-            else
-            {
-                today td = todaies.at(j);
-                fprintf(p_file, "{\"seconds\":%f}", td.frames / 60);
-            }
-
-
-            if(j != replays_size - 1)
-            {
-                fprintf(p_file, ",\n");
-            }
-        }
-
-        fprintf(p_file, "]");
-
-        fclose(p_file);
-
+        make_graph_pbs(cmd);
         cout << "Press 'ENTER' to update." << endl;
-
         load_python_graph();
     }
     else if(cmd == "json")
@@ -1300,12 +1338,12 @@ void take_input()
 
     if(change_settings == 1)
     {
-        FILE *p_file;
+        FILE * p_file;
         p_file = fopen("minolog_settings", "w");
 
         char const* output = "replays_per_n %i\nper_n_to_show %i"
-        "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
-        "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
+            "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
+            "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
 
         fprintf(p_file, output, per_n_count, per_n_to_show, pb_to_show,
             today_tag, old_day_to_show, month_to_show, fin_pb_to_show,
@@ -1537,8 +1575,10 @@ void set_month_history(int j, int &l)
     }
 
     month_size++;
+
     month_buf = replays[j].date.substr(5, 2);
     day_buf = replays[j].date.substr(8, 2);
+
     monthies.resize(l);
 
     monthies[l - 1].day_count = day_count;
@@ -1571,15 +1611,17 @@ void set_month_history(int j, int &l)
 
 void update_piece_counts(int j)
 {
-    if(replays[j].n_piece_locked < 102)
+    int locked = replays[j].n_piece_locked;
+
+    if(locked < 102)
     {
         pieces_sub_102++;
     }
-    else if(replays[j].n_piece_locked == 102)
+    else if(locked == 102)
     {
         pieces_102++;
     }
-    else if(replays[j].n_piece_locked == 103)
+    else if(locked == 103)
     {
         pieces_103++;
     }

@@ -1,0 +1,2 @@
+g++ -o ml minolog.cpp
+mv ml /home/daniel/Documents/NullpoMino/replay/ml
