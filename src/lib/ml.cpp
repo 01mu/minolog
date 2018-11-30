@@ -1390,7 +1390,7 @@ void reset()
     date_buf.clear();
 }
 
-void set_fin_pb_history(int j, int &finMark)
+void set_fin_pb_history(int j, int &fin_mark)
 {
     if(replays[j].finesse < lowest_finesse && replays[j].finesse != 0)
     {
@@ -1405,19 +1405,19 @@ void set_fin_pb_history(int j, int &finMark)
 
         finesse_bests.push_back(temp);
 
-        if(finMark == 0)
+        if(fin_mark == 0)
         {
-            finesse_bests[finMark].difference = 0;
+            finesse_bests[fin_mark].difference = 0;
         }
         else
         {
-            finesse_bests[finMark].difference =
-                finesse_bests[finMark - 1].finesse -
-                finesse_bests[finMark].finesse;
+            finesse_bests[fin_mark].difference =
+                finesse_bests[fin_mark - 1].finesse -
+                finesse_bests[fin_mark].finesse;
         }
 
         lowest_finesse = replays[j].finesse;
-        finMark++;
+        fin_mark++;
     }
 }
 
