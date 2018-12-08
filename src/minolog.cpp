@@ -3,6 +3,8 @@
 * github.com/01mu
 */
 
+using namespace std;
+
 #include <unistd.h>
 #include <dirent.h>
 #include <iostream>
@@ -20,8 +22,6 @@
 #ifdef _WIN32
 #include "lib/dirent.h"
 #endif
-
-using namespace std;
 
 #include "lib/ml.cpp"
 
