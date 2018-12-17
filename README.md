@@ -60,20 +60,20 @@ Time      PPS     Pieces  Finesse  Holds  Name
 Press 'ENTER' to update. Type 'cmds' for commands.
 ```
 ## Commands
-`pern 'count'`: set per N count
-`perdts 'count'`: set per days to show
-`pernts 'count'`: set per Ns to show
-`pbs 'count'`: set PBs to show
-`today 'count'`: set today's replays to show
-`old 'count'`: set old day's replays to show
-`month 'count'`: set monthly replays to show
-`finpb 'count'`: set finesse PBs to show
-`autoset 'seconds'`: set automatic update time
-`json`: make json file
-`graph-today`: display today graph
-`graph-pbs`: display pb graph
-`graph-pern`: display per n graph
-`auto`: enable automatic updating
+* `pern 'count'`: set per N count
+* `perdts 'count'`: set per days to show
+* `pernts 'count'`: set per Ns to show
+* `pbs 'count'`: set PBs to show
+* `today 'count'`: set today's replays to show
+* `old 'count'`: set old day's replays to show
+* `month 'count'`: set monthly replays to show
+* `finpb 'count'`: set finesse PBs to show
+* `autoset 'seconds'`: set automatic update time
+* `json`: make json file
+* `graph-today`: display today graph
+* `graph-pbs`: display pb graph
+* `graph-pern`: display per n graph
+* `auto`: enable automatic updating
 ## Time per 1000 replays in seconds (aggregated)
 ![Alt text](https://raw.githubusercontent.com/01mu/minolog/master/Figure_1.png "Title")
 ## Usage
