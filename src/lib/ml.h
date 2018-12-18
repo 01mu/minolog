@@ -6,13 +6,24 @@
 #ifndef ML_H_
 #define ML_H_
 
-const string MARATHON = "MARATHON";
-const string LINE_RACE = "LINERACE";
-const string OTHER = "NULL";
+#include <unistd.h>
+#include <dirent.h>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
+#include <vector>
+#include <time.h>
+#include <algorithm>
+#include <iomanip>
+#include <string>
+#include <climits>
+#include <sstream>
 
-const int TYPE20 = 0;
-const int TYPE40 = 1;
-const int TYPE10 = 3;
+#ifdef _WIN32
+#include "lib/dirent.h"
+#endif
+
+using namespace std;
 
 struct rep
 {
@@ -170,53 +181,5 @@ void set_month_history(int, int &);
 void show_cmd_options();
 void make_graph_pern();
 void make_graph_pbs(string &);
-
-vector<rep> replays;
-
-vector<string> replay_names;
-vector<string> imported_replays;
-vector<string> new_replays;
-
-vector<old_day> oldies;
-vector<month> monthies;
-vector<today> todaies;
-vector<per_n> stats;
-vector<pb> bests;
-vector<finesse_pb> finesse_bests;
-
-bool auto_update = 0;
-
-double all_frames_sum = 0;
-double _40_frames_sum = 0;
-
-double num_all = 0;
-double num_40 = 0;
-double hundred_count = 0;
-
-int pieces_sub_102 = 0;
-int pieces_102 = 0;
-int pieces_103 = 0;
-int pieces_greater_103 = 0;
-
-int per_n_count;
-int per_n_to_show;
-int pb_to_show;
-int fin_pb_to_show;
-int today_to_show;
-int today_tag;
-int old_day_to_show;
-int month_to_show;
-int auto_time;
-
-int lowest_finesse = INT_MAX;
-int lowest_frames = INT_MAX;
-
-int month_size = 0;
-int day_count = 0;
-int size_buf = 0;
-
-string month_buf;
-string day_buf;
-string date_buf;
 
 #endif

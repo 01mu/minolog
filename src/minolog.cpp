@@ -3,25 +3,7 @@
 * github.com/01mu
 */
 
-using namespace std;
-
-#include <unistd.h>
-#include <dirent.h>
 #include <iostream>
-#include <fstream>
-#include <cstring>
-#include <cstdlib>
-#include <vector>
-#include <time.h>
-#include <algorithm>
-#include <iomanip>
-#include <string>
-#include <climits>
-#include <sstream>
-
-#ifdef _WIN32
-#include "lib/dirent.h"
-#endif
 
 #include "lib/ml.cpp"
 

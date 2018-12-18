@@ -3,7 +3,8 @@
 * Display personal bests, daily history, monthly history, and history per N games for [NullpoMino](https://github.com/nullpomino/nullpomino) replays.
 * Export replay info to a JSON file.
 * Historical graphs (Python and matplotlib required).
-## Output
+## Usage
+#### Output
 ```
 ------------------------
 NullpoMino Replay Logger
@@ -59,7 +60,7 @@ Time      PPS     Pieces  Finesse  Holds  Name
 0.28 seconds
 Press 'ENTER' to update. Type 'cmds' for commands.
 ```
-## Commands
+### Commands
 * `pern 'count'`: set per N count
 * `perdts 'count'`: set per days to show
 * `pernts 'count'`: set per Ns to show
@@ -72,11 +73,11 @@ Press 'ENTER' to update. Type 'cmds' for commands.
 * `json`: make json file
 * `graph-today`: display today graph
 * `graph-pbs`: display pb graph
-* `graph-pern`: display per n graph
+* `graph-pern`: display per n graph (See below)
 * `auto`: enable automatic updating
-## Time per 1000 replays in seconds (aggregated)
+### Time per 1000 replays in seconds (aggregated)
 ![Alt text](https://raw.githubusercontent.com/01mu/minolog/master/Figure_1.png "Title")
-## Usage
+## Install
 ### Linux
 Build with `g++ -o ml src/minolog.cpp -Ofast` and move `ml` to NullpoMino's replay folder.
 ### Windows
