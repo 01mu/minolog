@@ -270,6 +270,8 @@ vector<string> get_replay_names()
         perror("");
     }
 
+    sort(vector.begin(), vector.end());
+
     return vector;
 }
 #endif
@@ -306,12 +308,17 @@ vector<string> get_replay_names()
         perror("");
     }
 
+    sort(vector.begin(), vector.end());
+
     return vector;
 }
 #endif
 
 void check_for_stat(string to_string, rep & temp)
 {
+    int minutes;
+    double seconds;
+
     if(to_string.compare(0, 17, "0.statistics.pps=") == 0)
     {
         temp.pieces_per_second = str_to_dec(to_string);
@@ -385,8 +392,8 @@ void check_for_stat(string to_string, rep & temp)
 
     if(to_string.compare(0, 12, "result.time=") == 0)
     {
-        int minutes = 0;
-        double seconds = (str_to_dec(to_string) / 60);
+        minutes = 0;
+        seconds = (str_to_dec(to_string) / 60);
 
         temp.frames = (int) str_to_dec(to_string);
 
@@ -433,35 +440,29 @@ void check_for_stat(string to_string, rep & temp)
     }
 }
 
-rep assign_from_replays(string replay)
+rep assign_from_replays(string & replay)
 {
+    char * q;
+    char s[256];
+
     rep temp;
 
     ifstream fin;
 
-    const char* string_to_char = replay.c_str();
-
-    fin.open(string_to_char);
+    fin.open(replay.c_str());
 
     temp.replay_name = replay;
     temp.kpt = 0;
     temp.finesse = 0;
 
-    char * q;
-
     while(!fin.eof())
     {
-        char s[256];
-
         fin.getline(s, 256);
         q = strtok(s, " ");
 
         while(q != NULL)
         {
-            string to_string(q);
-
-            check_for_stat(to_string, temp);
-
+            check_for_stat(q, temp);
             q = strtok(NULL, " ");
         }
     }
@@ -471,218 +472,237 @@ rep assign_from_replays(string replay)
 
 void make_settings_file()
 {
-    char * q;
-
     if(ifstream("minolog_settings"))
     {
-        vector<int> thing;
-
-        ifstream fin;
-        fin.open("minolog_settings");
-
-        while(!fin.eof())
-        {
-            char s[256];
-
-            fin.getline(s, 256);
-            q = strtok(s, " ");
-
-            while(q != NULL)
-            {
-                string to_string(q);
-                thing.push_back((int) strtod(q, NULL));
-
-                q = strtok(NULL, " ");
-            }
-        }
-
-        per_n_count = thing.at(1);
-        per_n_to_show = thing.at(3);
-        pb_to_show = thing.at(5);
-        today_to_show = thing.at(7);
-        old_day_to_show = thing.at(9);
-        month_to_show = thing.at(11);
-        fin_pb_to_show = thing.at(13);
-        auto_time = thing.at(15);
+        open_settings_file();
     }
     else
     {
-        FILE *p_file;
-        p_file = fopen("minolog_settings", "w");
-
-        if(p_file != NULL)
-        {
-            fprintf(p_file, "replays_per_n 500\nper_n_to_show 3\n"
-                "pbs_to_show 3\ntoday_to_show 3\nold_day_to_show 3\n"
-                "month_to_show 3\nfin_pb_to_show 3");
-        }
-
-        per_n_count = 500;
-        per_n_to_show = 3;
-        pb_to_show = 3;
-        today_to_show = 3;
-        old_day_to_show = 3;
-        month_to_show = 3;
-        fin_pb_to_show = 3;
-        auto_time = 60;
-
-        fclose(p_file);
+        new_settings_file();
     }
+}
+
+void open_settings_file()
+{
+    char * q;
+    char s[256];
+
+    vector<int> thing;
+
+    ifstream fin;
+    fin.open("minolog_settings");
+
+    while(!fin.eof())
+    {
+        fin.getline(s, 256);
+        q = strtok(s, " ");
+
+        while(q != NULL)
+        {
+            string to_string(q);
+            thing.push_back((int) strtod(q, NULL));
+
+            q = strtok(NULL, " ");
+        }
+    }
+
+    per_n_count = thing.at(1);
+    per_n_to_show = thing.at(3);
+    pb_to_show = thing.at(5);
+    today_to_show = thing.at(7);
+    old_day_to_show = thing.at(9);
+    month_to_show = thing.at(11);
+    fin_pb_to_show = thing.at(13);
+    auto_time = thing.at(15);
+}
+
+void new_settings_file()
+{
+    FILE * p_file = fopen("minolog_settings", "w");
+
+    fprintf(p_file, "replays_per_n 500\nper_n_to_show 3\n"
+        "pbs_to_show 3\ntoday_to_show 3\nold_day_to_show 3\n"
+        "month_to_show 3\nfin_pb_to_show 3");
+
+    per_n_count = 500;
+    per_n_to_show = 3;
+    pb_to_show = 3;
+    today_to_show = 3;
+    old_day_to_show = 3;
+    month_to_show = 3;
+    fin_pb_to_show = 3;
+    auto_time = 60;
+
+    fclose(p_file);
 }
 
 void make_replays_file()
 {
-    char * q;
-
     if(ifstream("minolog_replays"))
     {
-        ifstream fin;
-        fin.open("minolog_replays");
-
-        int to_decimal;
-        double to_float;
-
-        int k = 0;
-
-        while(!fin.eof())
-        {
-            int y = 0;
-
-            char s[256];
-
-            fin.getline(s, 256);
-            q = strtok(s, " ");
-
-            while(q != NULL)
-            {
-                to_decimal = (int) strtod(q, NULL);
-                to_float = strtof(q, NULL);
-
-                replays.resize(k + 1);
-
-                switch(y)
-                {
-                    case 0:
-                        replays[k].minutes = to_decimal;
-                        break;
-                    case 1:
-                        replays[k].seconds = to_float;
-                        break;
-                    case 2:
-                        replays[k].pieces_per_second = to_float;
-                        break;
-                    case 3:
-                        replays[k].finesse = to_decimal;
-                        break;
-                    case 4:
-                        replays[k].n_lines = to_decimal;
-                        break;
-                    case 5:
-                        replays[k].n_piece_locked = to_decimal;
-                        break;
-                    case 6:
-                        replays[k].n_piece_move = to_decimal;
-                        break;
-                    case 7:
-                        replays[k].kpt = to_float;
-                        break;
-                    case 8:
-                        replays[k].lines_per_minute = to_float;
-                        break;
-                    case 9:
-                        replays[k].pieces_per_minute = to_float;
-                        break;
-                    case 10:
-                        replays[k].n_piece_rotate = to_decimal;
-                        break;
-                    case 11:
-                        replays[k].n_hold_used = to_decimal;
-                        break;
-                    case 12:
-                        replays[k].n_single = to_decimal;
-                        break;
-                    case 13:
-                        replays[k].n_double = to_decimal;
-                        break;
-                    case 14:
-                        replays[k].n_triple = to_decimal;
-                        break;
-                    case 15:
-                        replays[k].n_four = to_decimal;
-                        break;
-                    case 16:
-                        replays[k].frames = to_decimal;
-                        break;
-                    case 17:
-                        replays[k].timestamp = q;
-                        break;
-                    case 18:
-                        replays[k].replay_name = q;
-                        imported_replays.push_back(replays[k].replay_name);
-                        break;
-                    case 19:
-                        replays[k].mode = q;
-                        break;
-                    case 20:
-                        replays[k].goal_type = to_decimal;
-                        break;
-                    case 21:
-                        replays[k].date = q;
-                        break;
-                    case 22:
-                        replays[k].big = to_decimal;
-                        break;
-                }
-
-                y++;
-                q = strtok(NULL, " ");
-            }
-
-            k++;
-        }
-
-        fin.close();
-
+        open_replay_file();
         write_new_replays();
     }
     else
     {
-        cout << "Scanning files..." << endl << endl;
+        new_replay_file();
+    }
+}
 
-        for(int j = 0; j < replay_names.size(); j++)
+void open_replay_file()
+{
+    ifstream fin;
+    fin.open("minolog_replays");
+
+    char * q;
+    char s[256];
+
+    int to_decimal;
+    double to_float;
+
+    int k = 0;
+    int y;
+
+    while(!fin.eof())
+    {
+        y = 0;
+        fin.getline(s, 256);
+        q = strtok(s, " ");
+
+        while(q != NULL)
         {
-            replays.push_back(assign_from_replays(replay_names.at(j)));
-        }
+            to_decimal = (int) strtod(q, NULL);
+            to_float = strtof(q, NULL);
 
-        FILE * p_file;
-        p_file = fopen("minolog_replays", "w");
+            replays.resize(k + 1);
 
-        if(p_file != NULL)
-        {
-            for(int j = 0; j < replays.size(); j++)
+            switch(y)
             {
-                rep replay = replays.at(j);
-
-                fprintf(p_file, "%i %f %f %i %i %i %i %f %f %f %i %i %i "
-                    "%i %i %i %i %s %s %s %i %s %i\n",
-                    replay.minutes, replay.seconds, replay.pieces_per_second,
-                    replay.finesse, replay.n_lines, replay.n_piece_locked,
-                    replay.n_piece_move, replay.kpt, replay.lines_per_minute,
-                    replay.pieces_per_minute, replay.n_piece_rotate,
-                    replay.n_hold_used, replay.n_single, replay.n_double,
-                    replay.n_triple, replay.n_four, replay.frames,
-                    replay.timestamp.c_str(), replay.replay_name.c_str(),
-                    replay.mode.c_str(), replay.goal_type, replay.date.c_str(),
-                    replay.big);
+                case 0:
+                    replays[k].minutes = to_decimal;
+                    break;
+                case 1:
+                    replays[k].seconds = to_float;
+                    break;
+                case 2:
+                    replays[k].pieces_per_second = to_float;
+                    break;
+                case 3:
+                    replays[k].finesse = to_decimal;
+                    break;
+                case 4:
+                    replays[k].n_lines = to_decimal;
+                    break;
+                case 5:
+                    replays[k].n_piece_locked = to_decimal;
+                    break;
+                case 6:
+                    replays[k].n_piece_move = to_decimal;
+                    break;
+                case 7:
+                    replays[k].kpt = to_float;
+                    break;
+                case 8:
+                    replays[k].lines_per_minute = to_float;
+                    break;
+                case 9:
+                    replays[k].pieces_per_minute = to_float;
+                    break;
+                case 10:
+                    replays[k].n_piece_rotate = to_decimal;
+                    break;
+                case 11:
+                    replays[k].n_hold_used = to_decimal;
+                    break;
+                case 12:
+                    replays[k].n_single = to_decimal;
+                    break;
+                case 13:
+                    replays[k].n_double = to_decimal;
+                    break;
+                case 14:
+                    replays[k].n_triple = to_decimal;
+                    break;
+                case 15:
+                    replays[k].n_four = to_decimal;
+                    break;
+                case 16:
+                    replays[k].frames = to_decimal;
+                    break;
+                case 17:
+                    replays[k].timestamp = q;
+                    break;
+                case 18:
+                    replays[k].replay_name = q;
+                    imported_replays.push_back(replays[k].replay_name);
+                    break;
+                case 19:
+                    replays[k].mode = q;
+                    break;
+                case 20:
+                    replays[k].goal_type = to_decimal;
+                    break;
+                case 21:
+                    replays[k].date = q;
+                    break;
+                case 22:
+                    replays[k].big = to_decimal;
+                    break;
             }
 
-            fclose(p_file);
+            y++;
+            q = strtok(NULL, " ");
         }
+
+        k++;
     }
+
+    fin.close();
+}
+
+void new_replay_file()
+{
+    FILE * p_file;
+    rep replay;
+
+    cout << "Scanning files..." << endl << endl;
+
+    for(int j = 0; j < replay_names.size(); j++)
+    {
+        replays.push_back(assign_from_replays(replay_names.at(j)));
+    }
+
+    p_file = fopen("minolog_replays", "w");
+
+    for(int j = 0; j < replays.size(); j++)
+    {
+        replay = replays.at(j);
+
+        fprintf(p_file, "%i %f %f %i %i %i %i %f %f %f %i %i %i "
+            "%i %i %i %i %s %s %s %i %s %i\n",
+            replay.minutes, replay.seconds, replay.pieces_per_second,
+            replay.finesse, replay.n_lines, replay.n_piece_locked,
+            replay.n_piece_move, replay.kpt, replay.lines_per_minute,
+            replay.pieces_per_minute, replay.n_piece_rotate,
+            replay.n_hold_used, replay.n_single, replay.n_double,
+            replay.n_triple, replay.n_four, replay.frames,
+            replay.timestamp.c_str(), replay.replay_name.c_str(),
+            replay.mode.c_str(), replay.goal_type, replay.date.c_str(),
+            replay.big);
+    }
+
+    fclose(p_file);
 }
 
 void write_new_replays()
 {
+    FILE * p_file;
+
+    int replays_size = replays.size();
+
+    int to_begin;
+    rep replay;
+
     sort(imported_replays.begin(),
         imported_replays.begin() + imported_replays.size());
 
@@ -692,20 +712,16 @@ void write_new_replays()
         imported_replays.begin(), imported_replays.end(),
         back_inserter(new_replays));
 
-    int replays_size = replays.size();
-
     if(new_replays.size() > 0)
     {
+        p_file = fopen("minolog_replays", "a");
+
         for(int j = 0; j < new_replays.size(); j++)
         {
-            int to_begin = replays_size + j;
-            rep replay;
+            to_begin = replays_size + j;
 
             replays.push_back(assign_from_replays(new_replays.at(j)));
             replay = replays.at(to_begin);
-
-            FILE * p_file;
-            p_file = fopen("minolog_replays", "a");
 
             fprintf(p_file, "%i %f %f %i %i %i %i %f %f %f %i %i %i %i "
                 "%i %i %i %s %s %s %i %s %i\n",
@@ -718,24 +734,24 @@ void write_new_replays()
                 replay.timestamp.c_str(), replay.replay_name.c_str(),
                 replay.mode.c_str(), replay.goal_type, replay.date.c_str(),
                 replay.big);
-
-            fclose(p_file);
         }
+
+        fclose(p_file);
     }
 }
 
 void make_json()
 {
-    FILE *p_file;
-    p_file = fopen("minolog_json", "w");
-
     int replays_size = replays.size();
+    rep replay;
+
+    FILE * p_file = p_file = fopen("minolog_json", "w");
 
     fprintf(p_file, "[");
 
     for(int j = 0; j < replays_size; j++)
     {
-        rep replay = replays.at(j);
+        replay = replays.at(j);
 
         fprintf(p_file, "{\"minutes\":%i, \"seconds\":%f, "
             "\"pieces_per_second\": %f, \"finesse\": %i, \"n_lines\":%i, "
@@ -767,7 +783,7 @@ void make_json()
     fclose(p_file);
 }
 
-void output_pb_history(int pb_to_show)
+void output_pb_history()
 {
     int size = bests.size();
 
@@ -797,7 +813,7 @@ void output_pb_history(int pb_to_show)
     }
 }
 
-void output_fin_pb_history(int fin_pb_to_show)
+void output_fin_pb_history()
 {
     int size = finesse_bests.size();
 
@@ -828,8 +844,7 @@ void output_fin_pb_history(int fin_pb_to_show)
     }
 }
 
-void output_per_n(int per_n_count, int per_n_to_show, double num_40,
-    double hundred_count)
+void output_per_n()
 {
     int size = stats.size();
     double diff = num_40 - hundred_count;
@@ -895,7 +910,7 @@ void output_per_n(int per_n_count, int per_n_to_show, double num_40,
     }
 }
 
-void output_month_history(int month_to_show)
+void output_month_history()
 {
     int size = monthies.size();
 
@@ -945,7 +960,7 @@ void output_month_history(int month_to_show)
     }
 }
 
-void output_old_day_history(int old_day_to_show)
+void output_old_day_history()
 {
     int size = oldies.size();
 
@@ -993,7 +1008,7 @@ void output_old_day_history(int old_day_to_show)
     }
 }
 
-void output_today_history(int today_to_show)
+void output_today_history()
 {
     int size = todaies.size();
 
@@ -1025,46 +1040,39 @@ void load_python_graph()
 
 void make_graph_mode(char const * type)
 {
-    FILE * p_file;
-
-    p_file = fopen("minolog_graph", "w");
-
-    if(p_file != NULL)
-    {
-        fprintf(p_file, "%s", type);
-    }
-
+    FILE * p_file = fopen("minolog_graph", "w");
+    fprintf(p_file, "%s", type);
     fclose(p_file);
 }
 
 void set_display_limits()
 {
-    if(per_n_to_show <= 0 || per_n_to_show > (int) stats.size())
+    if(per_n_to_show <= 0 || per_n_to_show > stats.size())
     {
         per_n_to_show = stats.size();
     }
 
-    if(pb_to_show <= 0 || pb_to_show > (int) bests.size())
+    if(pb_to_show <= 0 || pb_to_show > bests.size())
     {
         pb_to_show = bests.size();
     }
 
-    if(old_day_to_show <= 0 || old_day_to_show > (int) oldies.size())
+    if(old_day_to_show <= 0 || old_day_to_show > oldies.size())
     {
         old_day_to_show = oldies.size();
     }
 
-    if(month_to_show <= 0 || month_to_show > (int) monthies.size())
+    if(month_to_show <= 0 || month_to_show > monthies.size())
     {
         month_to_show = monthies.size();
     }
 
-    if(fin_pb_to_show <= 0 || fin_pb_to_show > (int) finesse_bests.size())
+    if(fin_pb_to_show <= 0 || fin_pb_to_show > finesse_bests.size())
     {
         fin_pb_to_show = finesse_bests.size();
     }
 
-    if(today_to_show <= 0 || today_to_show > (int) todaies.size())
+    if(today_to_show <= 0 || today_to_show > todaies.size())
     {
         today_tag = today_to_show;
         today_to_show = todaies.size();
@@ -1151,10 +1159,15 @@ void show_cmd_options()
 void make_graph_pern()
 {
     FILE *p_file;
+
     int size = stats.size();
     int replays_size;
+
     double diff = num_40 - hundred_count;
+
     per_n purn;
+    per_n temp;
+
     vector<per_n> to_output;
 
     char const * str = "{\"seconds\":%f, \"pieces_per_second\":%f, "
@@ -1163,8 +1176,6 @@ void make_graph_pern()
 
     for(int j = size - 1; j >= 0; j--)
     {
-        per_n temp;
-
         if(j == size - 1 && num_40 - hundred_count != 0)
         {
             temp.frames = stats[j].frames / diff;
@@ -1223,7 +1234,9 @@ void make_graph_pern()
 void make_graph_pbs(string & cmd)
 {
     FILE * p_file;
+
     int replays_size;
+
     pb peeb;
     today td;
 
@@ -1272,9 +1285,10 @@ void take_input()
     char * q;
     char input[256];
 
-    string cmd;
     int value = 0;
-    bool change_settings = 0;
+    string cmd = "";
+
+    vector<string> inputs;
 
     cout << "Press 'ENTER' to update. Type 'cmds' for commands." << endl;
 
@@ -1284,90 +1298,64 @@ void take_input()
 
     while(q != NULL)
     {
-        if(strcmp(q, "cmds") == 0)
-        {
-            show_cmd_options();
+        inputs.push_back(q);
+        q = strtok(NULL, " ");
+    }
 
-            cin.getline(input, 256);
-            q = strtok(input, " ");
-        }
-        else if((cmd == "graph-pern" || cmd == "graph-pbs" || cmd == "pern" ||
-            cmd == "json" || cmd == "pernts" || cmd == "pbs" ||
-            cmd == "today" || cmd == "old" || cmd == "month" ||
-            cmd == "finpb" || cmd == "autoset")
-            && strtod(q, NULL) > 0)
-        {
-            if(cmd == "graph-pern")
-            {
-                value = 1;
-            }
-            else if(cmd == "graph-pbs" || cmd == "graph-today")
-            {
-                value = 0;
-            }
-            else
-            {
-                value = strtod(q, NULL);
-            }
+    if(inputs.size() > 0)
+    {
+        cmd = inputs.at(0);
 
-            break;
-        }
-        else if(strcmp(q, "graph-pern") == 0 || strcmp(q, "graph-pbs") == 0 ||
-            strcmp(q, "graph-today") == 0 ||
-            strcmp(q, "json") == 0 || strcmp(q, "pern") == 0 ||
-            strcmp(q, "pernts") == 0 || strcmp(q, "pbs") == 0 ||
-            strcmp(q, "today") == 0 || strcmp(q, "old") == 0 ||
-            strcmp(q, "month") == 0 || strcmp(q, "finpb") == 0 ||
-            strcmp(q, "autoset") == 0 || strcmp(q, "auto") == 0)
+        if(inputs.size() > 1)
         {
-            cmd = q;
-            q = strtok(NULL, " ");
-        }
-        else
-        {
-            break;
+            value = atoi(inputs.at(1).c_str());
         }
     }
 
-    if(cmd == "pern")
+    if(cmd == "cmds")
+    {
+        show_cmd_options();
+        cin.getline(input, 256);
+    }
+    else if(cmd == "pern")
     {
         per_n_count = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "pernts")
     {
         per_n_to_show = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "pbs")
     {
         pb_to_show = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "today")
     {
         today_tag = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "old")
     {
         old_day_to_show = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "month")
     {
         month_to_show = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "finpb")
     {
         fin_pb_to_show = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "autoset")
     {
         auto_time = value;
-        change_settings = 1;
+        change_settings();
     }
     else if(cmd == "graph-pern")
     {
@@ -1391,22 +1379,21 @@ void take_input()
     {
         auto_update = 1;
     }
+}
 
-    if(change_settings == 1)
-    {
-        FILE * p_file;
-        p_file = fopen("minolog_settings", "w");
+void change_settings()
+{
+    FILE * p_file = fopen("minolog_settings", "w");
 
-        char const* output = "replays_per_n %i\nper_n_to_show %i"
-            "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
-            "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
+    char const * output = "replays_per_n %i\nper_n_to_show %i"
+        "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
+        "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
 
-        fprintf(p_file, output, per_n_count, per_n_to_show, pb_to_show,
-            today_tag, old_day_to_show, month_to_show, fin_pb_to_show,
-            auto_time);
+    fprintf(p_file, output, per_n_count, per_n_to_show, pb_to_show,
+        today_tag, old_day_to_show, month_to_show, fin_pb_to_show,
+        auto_time);
 
-        fclose(p_file);
-    }
+    fclose(p_file);
 }
 
 void reset()
@@ -1446,12 +1433,15 @@ void reset()
     date_buf.clear();
 }
 
-void set_fin_pb_history(int j, int &fin_mark)
+void set_fin_pb_history(int j, int & fin_mark)
 {
+    finesse_pb temp;
+
+    int lf;
+    int cf;
+
     if(replays[j].finesse < lowest_finesse && replays[j].finesse != 0)
     {
-        finesse_pb temp;
-
         temp.frames = replays[j].frames;
         temp.pieces_per_second = replays[j].pieces_per_second;
         temp.n_hold_used = replays[j].n_hold_used;
@@ -1461,15 +1451,17 @@ void set_fin_pb_history(int j, int &fin_mark)
 
         finesse_bests.push_back(temp);
 
-        if(fin_mark == 0)
+        if(!fin_mark)
         {
             finesse_bests[fin_mark].difference = 0;
         }
         else
         {
-            finesse_bests[fin_mark].difference =
-                finesse_bests[fin_mark - 1].finesse -
-                finesse_bests[fin_mark].finesse;
+            lf = finesse_bests[fin_mark - 1].finesse;
+            cf = finesse_bests[fin_mark].finesse;
+
+            finesse_bests[fin_mark].difference = lf - cf;
+
         }
 
         lowest_finesse = replays[j].finesse;
@@ -1477,12 +1469,12 @@ void set_fin_pb_history(int j, int &fin_mark)
     }
 }
 
-void set_pb_history(int j, int &u)
+void set_pb_history(int j, int & u)
 {
+    pb temp;
+
     if(replays[j].frames < lowest_frames)
     {
-        pb temp;
-
         temp.frames = replays[j].frames;
         temp.pieces_per_second = replays[j].pieces_per_second;
         temp.n_hold_used = replays[j].n_hold_used;
@@ -1492,7 +1484,7 @@ void set_pb_history(int j, int &u)
 
         bests.push_back(temp);
 
-        if(u == 0)
+        if(!u)
         {
             bests[u].difference = 0;
         }
@@ -1506,8 +1498,14 @@ void set_pb_history(int j, int &u)
     }
 }
 
-void set_per_n_history(int j, int &n, int &k)
+void set_per_n_history(int j, int & n, int & k)
 {
+    double ldf;
+    double lds;
+
+    double tdf;
+    double tds;
+
     _40_frames_sum += replays[j].frames;
 
     stats.resize(k + 1);
@@ -1523,37 +1521,23 @@ void set_per_n_history(int j, int &n, int &k)
     stats[k].n_piece_rotate += replays[j].n_piece_rotate;
     stats[k].n_piece_locked += replays[j].n_piece_locked;
 
+    ldf = stats[k - 1].frames;
+    lds = per_n_count;
+
+    tdf = stats[k].frames;
+
     if(k != 0)
     {
-        if(stats[k - 1].frames / per_n_count >
-            stats[k].frames / (num_40 - hundred_count))
-        {
-            stats[k].difference = stats[k - 1].frames /
-                per_n_count - stats[k].frames /(num_40 - hundred_count);
-        }
-        else
-        {
-            stats[k].difference = stats[k].frames /
-                (num_40 - hundred_count) - stats[k - 1].frames / per_n_count;
-        }
+        tds = num_40 - hundred_count;
+
+        stats[k].difference = get_diff(k, ldf, lds, tdf, tds);
     }
 
     if(n == per_n_count)
     {
-        if(k != 0)
-        {
-            if(stats[k - 1].frames / per_n_count >
-                stats[k].frames / per_n_count)
-            {
-                stats[k].difference = stats[k - 1].frames /
-                    per_n_count - stats[k].frames / per_n_count;
-            }
-            else
-            {
-                stats[k].difference = stats[k].frames /
-                    per_n_count - stats[k - 1].frames / per_n_count;
-            }
-        }
+        tds = per_n_count;
+
+        stats[k].difference = get_diff(k, ldf, lds, tdf, tds);
 
         n = 0;
         hundred_count += per_n_count;
@@ -1561,7 +1545,7 @@ void set_per_n_history(int j, int &n, int &k)
     }
 }
 
-void set_today_history(int j, int &s)
+void set_today_history(int j, int & s)
 {
     if(replays[j].date == convert_date())
     {
@@ -1578,8 +1562,14 @@ void set_today_history(int j, int &s)
     }
 }
 
-void set_old_day_history(int j, int &d)
+void set_old_day_history(int j, int & d)
 {
+    double ldf;
+    double lds;
+
+    double tdf;
+    double tds;
+
     if(replays[j].date != date_buf)
     {
         size_buf = 0;
@@ -1588,6 +1578,7 @@ void set_old_day_history(int j, int &d)
 
     size_buf++;
     date_buf = replays[j].date;
+
     oldies.resize(d);
 
     oldies[d - 1].frames += replays[j].frames;
@@ -1598,26 +1589,26 @@ void set_old_day_history(int j, int &d)
     oldies[d - 1].n_piece_locked += replays[j].n_piece_locked;
     oldies[d - 1].size = size_buf;
 
-    if(d - 1 != 0)
-    {
-        if(oldies[d - 2].frames / oldies[d - 2].size
-            > oldies[d - 1].frames / oldies[d - 1].size)
-        {
-            oldies[d - 1].difference =
-                (oldies[d - 2].frames / oldies[d - 2].size) -
-                (oldies[d - 1].frames / oldies[d - 1].size);
-        }
-        else
-        {
-            oldies[d - 1].difference =
-                (oldies[d - 1].frames / oldies[d - 1].size) -
-                (oldies[d - 2].frames / oldies[d - 2].size);
-        }
-    }
+    ldf = oldies[d - 2].frames;
+    lds = oldies[d - 2].size;
+
+    tdf = oldies[d - 1].frames;
+    tds = oldies[d - 1].size;
+
+    oldies[d - 1].difference = get_diff(d - 1, ldf, lds, tdf, tds);
 }
 
-void set_month_history(int j, int &l)
+void set_month_history(int j, int & l)
 {
+    double lmf;
+    double lms;
+
+    double tmf;
+    double tms;
+
+    string month_str;
+    string year;
+
     if(replays[j].date.substr(5, 2) != month_buf)
     {
         month_size = 0;
@@ -1634,6 +1625,8 @@ void set_month_history(int j, int &l)
 
     month_buf = replays[j].date.substr(5, 2);
     day_buf = replays[j].date.substr(8, 2);
+    year = replays[j].date.substr(0, 4);
+    month_str = num_to_month(replays[j].date.substr(5, 2)) + " " + year;
 
     monthies.resize(l);
 
@@ -1641,28 +1634,37 @@ void set_month_history(int j, int &l)
     monthies[l - 1].frames += replays[j].frames;
     monthies[l - 1].pieces_per_second += replays[j].pieces_per_second;
     monthies[l - 1].n_hold_used += replays[j].n_hold_used;
-    monthies[l - 1].month_str = num_to_month(replays[j].date.substr(5, 2)) +
-        " " + replays[j].date.substr(0, 4);
+    monthies[l - 1].month_str = month_str;
     monthies[l - 1].finesse += replays[j].finesse;
     monthies[l - 1].n_piece_locked += replays[j].n_piece_locked;
     monthies[l - 1].size = month_size;
 
-    if(l - 1 != 0)
+    lmf = monthies[l - 2].frames;
+    lms = monthies[l - 2].size;
+
+    tmf = monthies[l - 1].frames;
+    tms = monthies[l - 1].size;
+
+    monthies[l - 1].difference = get_diff(l - 1, lmf, lms, tmf, tms);
+}
+
+double get_diff(int n0, double f1, double s1, double f2, double s2)
+{
+    double diff;
+
+    if(n0)
     {
-        if(monthies[l - 2].frames / monthies[l - 2].size >
-            monthies[l - 1].frames / monthies[l - 1].size)
+        if(f1 / s1 > f2 / s2)
         {
-            monthies[l - 1].difference =
-                (monthies[l - 2].frames / monthies[l - 2].size) -
-                (monthies[l - 1].frames / monthies[l - 1].size);
+            diff = f1 / s1 - f2 / s2;
         }
         else
         {
-            monthies[l - 1].difference =
-            (monthies[l - 1].frames / monthies[l - 1].size) -
-            (monthies[l - 2].frames / monthies[l - 2].size);
+            diff = f2 / s2 - f1 / s1;
         }
     }
+
+    return diff;
 }
 
 void update_piece_counts(int j)

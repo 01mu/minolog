@@ -4,7 +4,6 @@
 */
 
 #include <iostream>
-
 #include "lib/ml.cpp"
 
 int main()
@@ -89,12 +88,12 @@ int main()
 
         display_header();
 
-        output_pb_history(pb_to_show);
-        output_fin_pb_history(fin_pb_to_show);
-        output_per_n(per_n_count, per_n_to_show, num_40, hundred_count);
-        output_month_history(month_to_show);
-        output_old_day_history(old_day_to_show);
-        output_today_history(today_to_show);
+        output_pb_history();
+        output_fin_pb_history();
+        output_per_n();
+        output_month_history();
+        output_old_day_history();
+        output_today_history();
 
         end = ((double) (clock() - t_start) / CLOCKS_PER_SEC);
 
@@ -111,7 +110,6 @@ int main()
                 reset_t = ((double) (clock() - reset_start) / CLOCKS_PER_SEC);
             }
 
-            reset();
             reset_start = clock();
             reset_t = 0;
         }
@@ -119,8 +117,9 @@ int main()
         {
             cout << endl;
             take_input();
-            reset();
         }
+
+        reset();
     }
 
     return 0;
