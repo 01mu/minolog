@@ -18,6 +18,7 @@
 #include <string>
 #include <climits>
 #include <sstream>
+
 #ifdef _WIN32
 #include "lib/dirent.h"
 #endif
@@ -140,19 +141,10 @@ double str_to_dec(string);
 
 string to_int(int);
 string to_float(double);
-string num_to_month(string);
+string num_to_month(string a);
 string month_date(string);
 string output_time(double);
 string convert_date();
-
-void make_json();
-void change_settings();
-void load_python_graph();
-void make_graph_mode(char const *);
-void set_display_limits();
-void take_input();
-void reset();
-void update_piece_counts(int j);
 
 vector<string> get_replay_names();
 void check_for_stat(string, rep &);
@@ -168,6 +160,27 @@ void open_replay_file();
 void new_replay_file();
 
 void display_header();
+void show_cmd_options();
+void make_graph_pern();
+void make_graph_pbs(string &);
+
+void make_json();
+void change_settings();
+void load_python_graph();
+void make_graph_mode(char const *);
+void set_display_limits();
+void take_input();
+void reset();
+
+double get_diff(double f1, double s1, double f2, double s2);
+void update_piece_counts(int j);
+
+bool set_fin_pb_history(int j, int u);
+bool set_pb_history(int j, int u);
+bool set_per_n_history(int j, int n, int k);
+bool set_today_history(int j, int s);
+bool set_old_day_history(int j, int d);
+bool set_month_history(int j, int l);
 
 void output_fin_pb_history();
 void output_pb_history();
@@ -175,18 +188,5 @@ void output_per_n();
 void output_today_history();
 void output_old_day_history();
 void output_month_history();
-
-void set_fin_pb_history(int, int &);
-void set_pb_history(int, int &);
-void set_per_n_history(int, int &, int &);
-void set_today_history(int, int &);
-void set_old_day_history(int, int &);
-void set_month_history(int, int &);
-
-void show_cmd_options();
-void make_graph_pern();
-void make_graph_pbs(string &);
-
-double get_diff(int, double, double, double, double);
 
 #endif

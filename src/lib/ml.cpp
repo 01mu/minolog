@@ -740,349 +740,12 @@ void write_new_replays()
     }
 }
 
-void make_json()
-{
-    int replays_size = replays.size();
-    rep replay;
-
-    FILE * p_file = p_file = fopen("minolog_json", "w");
-
-    fprintf(p_file, "[");
-
-    for(int j = 0; j < replays_size; j++)
-    {
-        replay = replays.at(j);
-
-        fprintf(p_file, "{\"minutes\":%i, \"seconds\":%f, "
-            "\"pieces_per_second\": %f, \"finesse\": %i, \"n_lines\":%i, "
-            "\"n_piece_locked\":%i, \"n_piece_move\": %i, \"kpt\": %f, "
-            "\"lines_per_minute\": %f, \"pieces_per_minute\": %f, "
-            "\"n_piece_rotate\":%i, \"n_hold_used\": %i, \"n_single\": %i, "
-            "\"n_double\": %i, \"n_triple\": %i, \"n_four\": %i, "
-            "\"frames\":%i, \"timestamp\": \"%s\", \"replay_name\": \"%s\", "
-            "\"mode\": \"%s\", \"goal_type\": %i, \"date\": \"%s\", "
-            "\"big\": %i}",
-            replay.minutes, replay.seconds, replay.pieces_per_second,
-            replay.finesse, replay.n_lines, replay.n_piece_locked,
-            replay.n_piece_move, replay.kpt, replay.lines_per_minute,
-            replay.pieces_per_minute, replay.n_piece_rotate,
-            replay.n_hold_used, replay.n_single, replay.n_double,
-            replay.n_triple, replay.n_four, replay.frames,
-            replay.timestamp.c_str(), replay.replay_name.c_str(),
-            replay.mode.c_str(), replay.goal_type, replay.date.c_str(),
-            replay.big);
-
-        if(j != replays_size - 1)
-        {
-            fprintf(p_file, ",\n");
-        }
-    }
-
-    fprintf(p_file, "]");
-
-    fclose(p_file);
-}
-
-void output_pb_history()
-{
-    int size = bests.size();
-
-    if(size > 0)
-    {
-        cout << "--- 40 Lines Race personal best history " << "("
-             << size << ") ---" << endl;
-
-        cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
-            << setw(9) << "Finesse" << setw(7) << "Holds"
-            << setw(25) << "Name" << "Improvement";
-
-        for(int j = size - 1; j >= size - pb_to_show; j--)
-        {
-            cout << endl << setw(10) << output_time(bests[j].frames)
-                << setw(8) << setprecision(4) << bests[j].pieces_per_second
-                << setw(8) << bests[j].n_piece_locked
-                << setw(9) << setprecision(2) << bests[j].finesse
-                << setw(7) << bests[j].n_hold_used
-                << setw(25) << bests[j].replay_name;
-
-            if(j != 0)
-            {
-                cout << "-" + to_float(bests[j].difference / 60);
-            }
-        }
-    }
-}
-
-void output_fin_pb_history()
-{
-    int size = finesse_bests.size();
-
-    if(size > 0)
-    {
-        cout << endl << endl << "--- Finesse personal best history "
-            << "(" << size << ") ---" << endl;
-
-        cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
-            << setw(9) << "Finesse" << setw(7) << "Holds"
-            << setw(25) << "Name" << "Improvement";
-
-        for(int j = size - 1; j >= size - fin_pb_to_show; j--)
-        {
-            cout << endl << setw(10) << output_time(finesse_bests[j].frames)
-                << setw(8) << setprecision(4)
-                << finesse_bests[j].pieces_per_second
-                << setw(8) << finesse_bests[j].n_piece_locked
-                << setw(9) << setprecision(2) << finesse_bests[j].finesse
-                << setw(7) << finesse_bests[j].n_hold_used
-                << setw(25) << finesse_bests[j].replay_name;
-
-            if(j != 0)
-            {
-                cout << "-" + to_float(finesse_bests[j].difference);
-            }
-        }
-    }
-}
-
-void output_per_n()
-{
-    int size = stats.size();
-    double diff = num_40 - hundred_count;
-
-    cout << endl << endl << "--- Statistics per " << per_n_count
-        << " completed 40 Lines Race replays (" << size << ") ---" << endl;
-
-    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
-        << setw(9) << "Finesse" << setw(7) << "Holds" << setw(17)
-        << "End date" << setw(8) << "To #" << "Difference";
-
-    for(int j = size - 1; j >= size - per_n_to_show; j--)
-    {
-        if(j == size - 1 && num_40 - hundred_count != 0)
-        {
-            cout << endl << setw(10) << output_time(stats[j].frames / diff)
-                << setw(8) << setprecision(4)
-                << stats[j].pieces_per_second / diff
-                << setw(8) << setprecision(2) << stats[j].n_piece_locked / diff
-                << setw(9) << setprecision(2) << stats[j].finesse / diff
-                << setw(7) << stats[j].n_hold_used / diff
-                << setw(17) << month_date(stats[j].end_date)
-                << setw(8) << stats[j].lower;
-
-            if(j != 0)
-            {
-                if(stats[j - 1].frames /(per_n_count) > stats[j].frames / diff)
-                {
-                    cout << "-" + to_float(stats[j].difference / 60);
-                }
-                else
-                {
-                    cout << "+" + to_float(stats[j].difference / 60);
-                }
-            }
-        }
-        else
-        {
-            cout << endl << setw(10)
-                << output_time(stats[j].frames / per_n_count)
-                << setw(8) << setprecision(4)
-                << stats[j].pieces_per_second / per_n_count
-                << setw(8) << setprecision(2)
-                << stats[j].n_piece_locked / per_n_count
-                << setw(9) << setprecision(2)
-                << stats[j].finesse / per_n_count
-                << setw(7) << stats[j].n_hold_used / per_n_count
-                << setw(17) << month_date(stats[j].end_date)
-                << setw(8) << stats[j].lower;
-
-            if(j != 0)
-            {
-                if(stats[j - 1].frames > stats[j].frames)
-                {
-                    cout << "-" + to_float(stats[j].difference / 60);
-                }
-                else
-                {
-                    cout << "+" + to_float(stats[j].difference / 60);
-                }
-            }
-        }
-    }
-}
-
-void output_month_history()
-{
-    int size = monthies.size();
-
-    if(size > 0)
-    {
-        cout << endl << endl
-            << "--- Monthly history of completed 40 Lines Race replays ("
-            << monthies.size() << ") ---" << endl;
-
-        cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8)
-            << "Pieces" << setw(9) << "Finesse" << setw(7) << "Holds"
-            << setw(11) << "Month" << setw(6) << "#" << setw(8) << "#/d"
-            << "Difference";
-
-        for(int j = size - 1; j >= size - month_to_show; j--)
-        {
-            int month_size = monthies[j].size;
-
-            cout << endl << setw(10)
-                << output_time((monthies[j].frames / month_size))
-                << setw(8) << setprecision(4)
-                << monthies[j].pieces_per_second / month_size
-                << setw(8) << setprecision(2)
-                << monthies[j].n_piece_locked / month_size
-                << setw(9) << setprecision(2)
-                << monthies[j].finesse / month_size
-                << setw(7) << monthies[j].n_hold_used / month_size
-                << setw(11) << monthies[j].month_str
-                << setw(6) << month_size
-                << setw(8) <<(float)monthies[j].size / monthies[j].day_count;
-
-            if(j != 0)
-            {
-                int previous_month_size = monthies[j - 1].size;
-
-                if(monthies[j - 1].frames / previous_month_size
-                    > monthies[j].frames / month_size)
-                {
-                    cout << "-" + to_float(monthies[j].difference / 60);
-                }
-                else
-                {
-                    cout << "+" + to_float(monthies[j].difference / 60);
-                }
-            }
-        }
-    }
-}
-
-void output_old_day_history()
-{
-    int size = oldies.size();
-
-    if(size > 0)
-    {
-        cout << endl << endl
-            << "--- Daily history of completed 40 Lines Race replays ("
-            << size << ") ---" << endl;
-
-        cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
-            << setw(9) << "Finesse" << setw(7) << "Holds" << setw(17) << "Date"
-            << setw(8) << "#" << "Difference";
-
-        for(int j = size - 1; j >= size - old_day_to_show; j--)
-        {
-            int day_size = oldies[j].size;
-
-            cout << endl << setw(10)
-                << output_time((oldies[j].frames / day_size))
-                << setw(8) << setprecision(4)
-                << oldies[j].pieces_per_second / day_size
-                << setw(8) << setprecision(2)
-                << oldies[j].n_piece_locked / day_size
-                << setw(9) << setprecision(2)
-                << oldies[j].finesse / day_size
-                << setw(7) << oldies[j].n_hold_used / day_size
-                << setw(17) << month_date(oldies[j].date)
-                << setw(8) << day_size;
-
-            if(j != 0)
-            {
-                int previous_day_size = oldies[j - 1].size;
-
-                if(oldies[j - 1].frames /
-                    previous_day_size > oldies[j].frames / day_size)
-                {
-                    cout << "-" + to_float(oldies[j].difference / 60);
-                }
-                else
-                {
-                    cout << "+" + to_float(oldies[j].difference / 60);
-                }
-            }
-        }
-    }
-}
-
-void output_today_history()
-{
-    int size = todaies.size();
-
-    if(size > 0)
-    {
-        cout << endl << endl << "--- Today's completed 40 Lines Race replays ("
-            << size << ") ---" << endl;
-
-        cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
-            << setw(9) << "Finesse" << setw(7) << "Holds" << "Name";
-
-        for(int j = size - 1; j >= size - today_to_show; j--)
-        {
-            cout << endl << setw(10) << output_time(todaies[j].frames)
-                << setw(8) << setprecision(4) << todaies[j].pieces_per_second
-                << setw(8) << todaies[j].n_piece_locked
-                << setw(9) << setprecision(2) << todaies[j].finesse
-                << setw(7) << todaies[j].n_hold_used
-                << todaies[j].replay_name;
-        }
-    }
-}
-
-void load_python_graph()
-{
-    FILE * in = popen("python minolog.py", "r");
-    pclose(in);
-}
-
-void make_graph_mode(char const * type)
-{
-    FILE * p_file = fopen("minolog_graph", "w");
-    fprintf(p_file, "%s", type);
-    fclose(p_file);
-}
-
-void set_display_limits()
-{
-    if(per_n_to_show <= 0 || per_n_to_show > stats.size())
-    {
-        per_n_to_show = stats.size();
-    }
-
-    if(pb_to_show <= 0 || pb_to_show > bests.size())
-    {
-        pb_to_show = bests.size();
-    }
-
-    if(old_day_to_show <= 0 || old_day_to_show > oldies.size())
-    {
-        old_day_to_show = oldies.size();
-    }
-
-    if(month_to_show <= 0 || month_to_show > monthies.size())
-    {
-        month_to_show = monthies.size();
-    }
-
-    if(fin_pb_to_show <= 0 || fin_pb_to_show > finesse_bests.size())
-    {
-        fin_pb_to_show = finesse_bests.size();
-    }
-
-    if(today_to_show <= 0 || today_to_show > todaies.size())
-    {
-        today_tag = today_to_show;
-        today_to_show = todaies.size();
-    }
-    else
-    {
-        today_tag = today_to_show;
-    }
-}
-
+/*
+ * Print header containing total and 40 line statistics.
+ *
+ * args:    none
+ * returns: none
+ */
 void display_header()
 {
     double pieces_sub_102_per = (pieces_sub_102 / num_40) * 100;
@@ -1091,9 +754,6 @@ void display_header()
     double pieces_greater_103_per = (pieces_greater_103 / num_40) * 100;
 
     int last_pos = oldies.size() - 1;
-
-    string first = month_date(oldies[0].date);
-    string last = month_date(oldies[last_pos].date);
 
     cout << setw(45) << "--- Total Statistics ---"
         << "--- 40 Lines Race Statistics ---" << endl;
@@ -1107,12 +767,12 @@ void display_header()
     cout << setw(45) << "# of replays: " + to_string((int) num_all)
         << "# of replays: " + to_string((int) num_40) << endl << endl;
 
-    cout << setw(45) << "Oldest: " + first << "< 102 pieces: "
-        + to_int(pieces_sub_102) << " ("
+    cout << setw(45) << "Oldest: " + month_date(oldies[0].date)
+        << "< 102 pieces: " + to_int(pieces_sub_102) << " ("
         << to_float(pieces_sub_102_per) << "%)" << endl;
 
-    cout << setw(45) << "Recent: " + last << "= 102 pieces: "
-        + to_int(pieces_102) << " ("
+    cout << setw(45) << "Recent: " + month_date(oldies[last_pos].date)
+        << "= 102 pieces: " + to_int(pieces_102) << " ("
         << to_float(pieces_102_per) << "%)" << endl;
 
     cout << setw(45) << " " << "= 103 pieces: "
@@ -1124,6 +784,12 @@ void display_header()
         << to_float(pieces_greater_103_per) << "%)" << endl << endl;
 }
 
+/*
+ * Print text for command options.
+ *
+ * args:    none
+ * returns: none
+ */
 void show_cmd_options()
 {
     cout << endl << setw(20) << "pern 'count'"
@@ -1156,6 +822,12 @@ void show_cmd_options()
         << ":: enable automatic updating" << endl;
 }
 
+/*
+ * Print file with per N graph data in JSON format.
+ *
+ * args:    none
+ * returns: none
+ */
 void make_graph_pern()
 {
     FILE *p_file;
@@ -1231,6 +903,12 @@ void make_graph_pern()
     fclose(p_file);
 }
 
+/*
+ * Print file with graph data in JSON format.
+ *
+ * args:    cmd = type of data to print (pbs or today's replays)
+ * returns: none
+ */
 void make_graph_pbs(string & cmd)
 {
     FILE * p_file;
@@ -1280,6 +958,150 @@ void make_graph_pbs(string & cmd)
     fclose(p_file);
 }
 
+/*
+ * Iterate through replays structure and create JSON file.
+ *
+ * args:    none
+ * returns: none
+ */
+void make_json()
+{
+    int replays_size = replays.size();
+    rep replay;
+
+    FILE * p_file = p_file = fopen("minolog_json", "w");
+
+    fprintf(p_file, "[");
+
+    for(int j = 0; j < replays_size; j++)
+    {
+        replay = replays.at(j);
+
+        fprintf(p_file, "{\"minutes\":%i, \"seconds\":%f, "
+            "\"pieces_per_second\": %f, \"finesse\": %i, \"n_lines\":%i, "
+            "\"n_piece_locked\":%i, \"n_piece_move\": %i, \"kpt\": %f, "
+            "\"lines_per_minute\": %f, \"pieces_per_minute\": %f, "
+            "\"n_piece_rotate\":%i, \"n_hold_used\": %i, \"n_single\": %i, "
+            "\"n_double\": %i, \"n_triple\": %i, \"n_four\": %i, "
+            "\"frames\":%i, \"timestamp\": \"%s\", \"replay_name\": \"%s\", "
+            "\"mode\": \"%s\", \"goal_type\": %i, \"date\": \"%s\", "
+            "\"big\": %i}",
+            replay.minutes, replay.seconds, replay.pieces_per_second,
+            replay.finesse, replay.n_lines, replay.n_piece_locked,
+            replay.n_piece_move, replay.kpt, replay.lines_per_minute,
+            replay.pieces_per_minute, replay.n_piece_rotate,
+            replay.n_hold_used, replay.n_single, replay.n_double,
+            replay.n_triple, replay.n_four, replay.frames,
+            replay.timestamp.c_str(), replay.replay_name.c_str(),
+            replay.mode.c_str(), replay.goal_type, replay.date.c_str(),
+            replay.big);
+
+        if(j != replays_size - 1)
+        {
+            fprintf(p_file, ",\n");
+        }
+    }
+
+    fprintf(p_file, "]");
+
+    fclose(p_file);
+}
+
+/*
+ * Update settings with global values after each loop.
+ *
+ * args:    none
+ * returns: none
+ */
+void change_settings()
+{
+    FILE * p_file = fopen("minolog_settings", "w");
+
+    char const * output = "replays_per_n %i\nper_n_to_show %i"
+        "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
+        "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
+
+    fprintf(p_file, output, per_n_count, per_n_to_show, pb_to_show,
+        today_tag, old_day_to_show, month_to_show, fin_pb_to_show,
+        auto_time);
+
+    fclose(p_file);
+}
+
+/*
+ * Load minolog.py for python graph.
+ *
+ * args:    none
+ * returns: none
+ */
+void load_python_graph()
+{
+    FILE * in = popen("python minolog.py", "r");
+
+    pclose(in);
+}
+
+/*
+ * Set type for python graph.
+ *
+ * args:    type name (graph-pern, graph-today, etc.)
+ * returns: none
+ */
+void make_graph_mode(char const * type)
+{
+    FILE * p_file = fopen("minolog_graph", "w");
+
+    fprintf(p_file, "%s", type);
+    fclose(p_file);
+}
+
+/*
+ * Set display limits for each set based on values in settings file.
+ *
+ * args:    none
+ * returns: none
+ */
+void set_display_limits()
+{
+    today_tag = today_to_show;
+
+    if(per_n_to_show <= 0 || per_n_to_show > stats.size())
+    {
+        per_n_to_show = stats.size();
+    }
+
+    if(pb_to_show <= 0 || pb_to_show > bests.size())
+    {
+        pb_to_show = bests.size();
+    }
+
+    if(old_day_to_show <= 0 || old_day_to_show > oldies.size())
+    {
+        old_day_to_show = oldies.size();
+    }
+
+    if(month_to_show <= 0 || month_to_show > monthies.size())
+    {
+        month_to_show = monthies.size();
+    }
+
+    if(fin_pb_to_show <= 0 || fin_pb_to_show > finesse_bests.size())
+    {
+        fin_pb_to_show = finesse_bests.size();
+    }
+
+    if(today_to_show <= 0 || today_to_show > todaies.size())
+    {
+        today_to_show = todaies.size();
+    }
+}
+
+/*
+ * Get user command input for each loop.
+ *
+ * args:    none
+ * returns: none
+ */
 void take_input()
 {
     char * q;
@@ -1289,8 +1111,6 @@ void take_input()
     string cmd = "";
 
     vector<string> inputs;
-
-    cout << "Press 'ENTER' to update. Type 'cmds' for commands." << endl;
 
     cin.getline(input, 256);
 
@@ -1320,42 +1140,34 @@ void take_input()
     else if(cmd == "pern")
     {
         per_n_count = value;
-        change_settings();
     }
     else if(cmd == "pernts")
     {
         per_n_to_show = value;
-        change_settings();
     }
     else if(cmd == "pbs")
     {
         pb_to_show = value;
-        change_settings();
     }
     else if(cmd == "today")
     {
         today_tag = value;
-        change_settings();
     }
     else if(cmd == "old")
     {
         old_day_to_show = value;
-        change_settings();
     }
     else if(cmd == "month")
     {
         month_to_show = value;
-        change_settings();
     }
     else if(cmd == "finpb")
     {
         fin_pb_to_show = value;
-        change_settings();
     }
     else if(cmd == "autoset")
     {
         auto_time = value;
-        change_settings();
     }
     else if(cmd == "graph-pern")
     {
@@ -1368,7 +1180,7 @@ void take_input()
     {
         cout << endl << "Loading..." << endl << endl;
         make_graph_pbs(cmd);
-        cout << "Press 'ENTER' to update." << endl;
+        cout << endl << "Press 'ENTER' to update." << endl;
         load_python_graph();
     }
     else if(cmd == "json")
@@ -1379,23 +1191,16 @@ void take_input()
     {
         auto_update = 1;
     }
+
+    change_settings();
 }
 
-void change_settings()
-{
-    FILE * p_file = fopen("minolog_settings", "w");
-
-    char const * output = "replays_per_n %i\nper_n_to_show %i"
-        "\npbs_to_show %i\ntoday_to_show %i\nold_day_to_show %i"
-        "\nmonth_to_show %i\nfin_pb_to_show %i\nauto_time %i";
-
-    fprintf(p_file, output, per_n_count, per_n_to_show, pb_to_show,
-        today_tag, old_day_to_show, month_to_show, fin_pb_to_show,
-        auto_time);
-
-    fclose(p_file);
-}
-
+/*
+ * Reset global values after each update.
+ *
+ * args:    none
+ * returns: none
+ */
 void reset()
 {
     replays.clear();
@@ -1433,15 +1238,75 @@ void reset()
     date_buf.clear();
 }
 
-void set_fin_pb_history(int j, int & fin_mark)
+/*
+ * Return the difference between the averages of two numbers.
+ *
+ * args:    f1 = numerator
+ *          s1 = denominator
+ *          f2 = numerator
+ *          s2 = denominator
+ * returns: difference
+ */
+double get_diff(double f1, double s1, double f2, double s2)
 {
-    finesse_pb temp;
+    double diff;
 
-    int lf;
-    int cf;
+    if(f1 / s1 > f2 / s2)
+    {
+        diff = f1 / s1 - f2 / s2;
+    }
+    else
+    {
+        diff = f2 / s2 - f1 / s1;
+    }
+
+    return diff;
+}
+
+/*
+ * Iterate through replays struct and update pieces dropped counts.
+ *
+ * args:    j = index in replays struct
+ * returns: none
+ */
+void update_piece_counts(int j)
+{
+    int locked = replays[j].n_piece_locked;
+
+    if(locked < 102)
+    {
+        pieces_sub_102++;
+    }
+    else if(locked == 102)
+    {
+        pieces_102++;
+    }
+    else if(locked == 103)
+    {
+        pieces_103++;
+    }
+    else
+    {
+        pieces_greater_103++;
+    }
+}
+
+/*
+ * Iteratate through replays and get finesse personal bests.
+ *
+ * args:    j = replay structure index
+ *          u = pb iteration count
+ * returns: whether to update pb iteration count
+ */
+bool set_fin_pb_history(int j, int u)
+{
+    bool update_iter = false;
+    finesse_pb temp;
 
     if(replays[j].finesse < lowest_finesse && replays[j].finesse != 0)
     {
+        update_iter = true;
+
         temp.frames = replays[j].frames;
         temp.pieces_per_second = replays[j].pieces_per_second;
         temp.n_hold_used = replays[j].n_hold_used;
@@ -1451,30 +1316,38 @@ void set_fin_pb_history(int j, int & fin_mark)
 
         finesse_bests.push_back(temp);
 
-        if(!fin_mark)
+        if(!u)
         {
-            finesse_bests[fin_mark].difference = 0;
+            finesse_bests[u].difference = 0;
         }
         else
         {
-            lf = finesse_bests[fin_mark - 1].finesse;
-            cf = finesse_bests[fin_mark].finesse;
-
-            finesse_bests[fin_mark].difference = lf - cf;
-
+            finesse_bests[u].difference = finesse_bests[u - 1].finesse -
+                finesse_bests[u].finesse;
         }
 
         lowest_finesse = replays[j].finesse;
-        fin_mark++;
     }
+
+    return update_iter;
 }
 
-void set_pb_history(int j, int & u)
+/*
+ * Iteratate through replays and get time personal bests.
+ *
+ * args:    j = replay structure index
+ *          u = pb iteration count
+ * returns: whether to update pb iteration count
+ */
+bool set_pb_history(int j, int u)
 {
+    bool update_iter = false;
     pb temp;
 
     if(replays[j].frames < lowest_frames)
     {
+        update_iter = true;
+
         temp.frames = replays[j].frames;
         temp.pieces_per_second = replays[j].pieces_per_second;
         temp.n_hold_used = replays[j].n_hold_used;
@@ -1494,26 +1367,29 @@ void set_pb_history(int j, int & u)
         }
 
         lowest_frames = replays[j].frames;
-        u++;
     }
+
+    return update_iter;
 }
 
-void set_per_n_history(int j, int & n, int & k)
+/*
+ * Iteratate through replays and get average per N replays.
+ *
+ * args:    j = replay structure index
+ *          n = per however many replays (skip)
+ *          k = per N replays iteration count
+ * returns: whether to update per N replays' iteration count
+ */
+bool set_per_n_history(int j, int n, int k)
 {
-    double ldf;
-    double lds;
-
-    double tdf;
-    double tds;
+    bool update_iter = false;
 
     _40_frames_sum += replays[j].frames;
 
     stats.resize(k + 1);
 
-    n++;
-
     stats[k].end_date = replays[j].date;
-    stats[k].lower = (int) num_40;
+    stats[k].lower = num_40;
     stats[k].finesse += replays[j].finesse;
     stats[k].frames += replays[j].frames;
     stats[k].pieces_per_second += replays[j].pieces_per_second;
@@ -1521,34 +1397,39 @@ void set_per_n_history(int j, int & n, int & k)
     stats[k].n_piece_rotate += replays[j].n_piece_rotate;
     stats[k].n_piece_locked += replays[j].n_piece_locked;
 
-    ldf = stats[k - 1].frames;
-    lds = per_n_count;
-
-    tdf = stats[k].frames;
-
     if(k != 0)
     {
-        tds = num_40 - hundred_count;
-
-        stats[k].difference = get_diff(k, ldf, lds, tdf, tds);
+        stats[k].difference = get_diff(stats[k - 1].frames, per_n_count,
+            stats[k].frames, num_40 - hundred_count);
     }
 
     if(n == per_n_count)
     {
-        tds = per_n_count;
+        stats[k].difference = get_diff(stats[k - 1].frames, per_n_count,
+            stats[k].frames, per_n_count);
 
-        stats[k].difference = get_diff(k, ldf, lds, tdf, tds);
-
-        n = 0;
         hundred_count += per_n_count;
-        k++;
+        update_iter = true;
     }
+
+    return update_iter;
 }
 
-void set_today_history(int j, int & s)
+/*
+ * Iteratate through replays and get today's replays.
+ *
+ * args:    j = replay structure index
+ *          s = today's replays iteration count
+ * returns: whether to update today's replays iteration count
+ */
+bool set_today_history(int j, int s)
 {
+    bool update_iter = false;
+
     if(replays[j].date == convert_date())
     {
+        update_iter = true;
+
         todaies.resize(s + 1);
 
         todaies[s].frames = replays[j].frames;
@@ -1557,22 +1438,26 @@ void set_today_history(int j, int & s)
         todaies[s].replay_name = replays[j].replay_name;
         todaies[s].finesse = replays[j].finesse;
         todaies[s].n_piece_locked = replays[j].n_piece_locked;
-
-        s++;
     }
+
+    return update_iter;
 }
 
-void set_old_day_history(int j, int & d)
+/*
+ * Iteratate through replays and get average history for each day.
+ *
+ * args:    j = replay structure index
+ *          d = day iteration count
+ * returns: whether to update the day iteration count
+ */
+bool set_old_day_history(int j, int d)
 {
-    double ldf;
-    double lds;
-
-    double tdf;
-    double tds;
+    bool update_iter = false;
 
     if(replays[j].date != date_buf)
     {
         size_buf = 0;
+        update_iter = true;
         d++;
     }
 
@@ -1589,22 +1474,22 @@ void set_old_day_history(int j, int & d)
     oldies[d - 1].n_piece_locked += replays[j].n_piece_locked;
     oldies[d - 1].size = size_buf;
 
-    ldf = oldies[d - 2].frames;
-    lds = oldies[d - 2].size;
+    oldies[d - 1].difference = get_diff(oldies[d - 2].frames,
+        oldies[d - 2].size, oldies[d - 1].frames, oldies[d - 1].size);
 
-    tdf = oldies[d - 1].frames;
-    tds = oldies[d - 1].size;
-
-    oldies[d - 1].difference = get_diff(d - 1, ldf, lds, tdf, tds);
+    return update_iter;
 }
 
-void set_month_history(int j, int & l)
+/*
+ * Iteratate through replays and get average history for each month.
+ *
+ * args:    j = replay structure index
+ *          l = month iteration count
+ * returns: whether to update the month iteration count
+ */
+bool set_month_history(int j, int l)
 {
-    double lmf;
-    double lms;
-
-    double tmf;
-    double tms;
+    bool update_iter = false;
 
     string month_str;
     string year;
@@ -1612,8 +1497,9 @@ void set_month_history(int j, int & l)
     if(replays[j].date.substr(5, 2) != month_buf)
     {
         month_size = 0;
-        l++;
         day_count = 0;
+        update_iter = true;
+        l++;
     }
 
     if((replays[j].date.substr(8, 2) != day_buf) && l != 0)
@@ -1639,52 +1525,242 @@ void set_month_history(int j, int & l)
     monthies[l - 1].n_piece_locked += replays[j].n_piece_locked;
     monthies[l - 1].size = month_size;
 
-    lmf = monthies[l - 2].frames;
-    lms = monthies[l - 2].size;
+    monthies[l - 1].difference = get_diff(monthies[l - 2].frames,
+        monthies[l - 2].size, monthies[l - 1].frames, monthies[l - 1].size);
 
-    tmf = monthies[l - 1].frames;
-    tms = monthies[l - 1].size;
-
-    monthies[l - 1].difference = get_diff(l - 1, lmf, lms, tmf, tms);
+    return update_iter;
 }
 
-double get_diff(int n0, double f1, double s1, double f2, double s2)
+void output_fin_pb_history()
 {
-    double diff;
+    int size = finesse_bests.size();
 
-    if(n0)
+    cout << endl << endl << "--- Finesse personal best history "
+        << "(" << size << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
+        << setw(9) << "Finesse" << setw(7) << "Holds"
+        << setw(25) << "Name" << "Improvement";
+
+    for(int j = size - 1; j >= size - fin_pb_to_show; j--)
     {
-        if(f1 / s1 > f2 / s2)
+        cout << endl << setw(10) << output_time(finesse_bests[j].frames)
+            << setw(8) << setprecision(4)
+            << finesse_bests[j].pieces_per_second
+            << setw(8) << finesse_bests[j].n_piece_locked
+            << setw(9) << setprecision(2) << finesse_bests[j].finesse
+            << setw(7) << finesse_bests[j].n_hold_used
+            << setw(25) << finesse_bests[j].replay_name;
+
+        if(j != 0)
         {
-            diff = f1 / s1 - f2 / s2;
+            cout << "-" + to_float(finesse_bests[j].difference);
+        }
+    }
+}
+
+void output_pb_history()
+{
+    int size = bests.size();
+
+    cout << "--- 40 Lines Race personal best history " << "("
+         << size << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
+        << setw(9) << "Finesse" << setw(7) << "Holds"
+        << setw(25) << "Name" << "Improvement";
+
+    for(int j = size - 1; j >= size - pb_to_show; j--)
+    {
+        cout << endl << setw(10) << output_time(bests[j].frames)
+            << setw(8) << setprecision(4) << bests[j].pieces_per_second
+            << setw(8) << bests[j].n_piece_locked
+            << setw(9) << setprecision(2) << bests[j].finesse
+            << setw(7) << bests[j].n_hold_used
+            << setw(25) << bests[j].replay_name;
+
+        if(j != 0)
+        {
+            cout << "-" + to_float(bests[j].difference / 60);
+        }
+    }
+}
+
+void output_per_n()
+{
+    int size = stats.size();
+    double diff = num_40 - hundred_count;
+
+    cout << endl << endl << "--- Statistics per " << per_n_count
+        << " completed 40 Lines Race replays (" << size << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
+        << setw(9) << "Finesse" << setw(7) << "Holds" << setw(17)
+        << "End date" << setw(8) << "To #" << "Difference";
+
+    for(int j = size - 1; j >= size - per_n_to_show; j--)
+    {
+        if(j == size - 1 && num_40 - hundred_count != 0)
+        {
+            cout << endl << setw(10) << output_time(stats[j].frames / diff)
+                << setw(8) << setprecision(4)
+                << stats[j].pieces_per_second / diff
+                << setw(8) << setprecision(2) << stats[j].n_piece_locked / diff
+                << setw(9) << setprecision(2) << stats[j].finesse / diff
+                << setw(7) << stats[j].n_hold_used / diff
+                << setw(17) << month_date(stats[j].end_date)
+                << setw(8) << stats[j].lower;
+
+            if(j != 0)
+            {
+                if(stats[j - 1].frames /(per_n_count) > stats[j].frames / diff)
+                {
+                    cout << "-" + to_float(stats[j].difference / 60);
+                }
+                else
+                {
+                    cout << "+" + to_float(stats[j].difference / 60);
+                }
+            }
         }
         else
         {
-            diff = f2 / s2 - f1 / s1;
+            cout << endl << setw(10)
+                << output_time(stats[j].frames / per_n_count)
+                << setw(8) << setprecision(4)
+                << stats[j].pieces_per_second / per_n_count
+                << setw(8) << setprecision(2)
+                << stats[j].n_piece_locked / per_n_count
+                << setw(9) << setprecision(2)
+                << stats[j].finesse / per_n_count
+                << setw(7) << stats[j].n_hold_used / per_n_count
+                << setw(17) << month_date(stats[j].end_date)
+                << setw(8) << stats[j].lower;
+
+            if(j != 0)
+            {
+                if(stats[j - 1].frames > stats[j].frames)
+                {
+                    cout << "-" + to_float(stats[j].difference / 60);
+                }
+                else
+                {
+                    cout << "+" + to_float(stats[j].difference / 60);
+                }
+            }
         }
     }
-
-    return diff;
 }
 
-void update_piece_counts(int j)
+void output_today_history()
 {
-    int locked = replays[j].n_piece_locked;
+    int size = todaies.size();
 
-    if(locked < 102)
+    cout << endl << endl << "--- Today's completed 40 Lines Race replays ("
+        << size << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
+        << setw(9) << "Finesse" << setw(7) << "Holds" << "Name";
+
+    for(int j = size - 1; j >= size - today_to_show; j--)
     {
-        pieces_sub_102++;
+        cout << endl << setw(10) << output_time(todaies[j].frames)
+            << setw(8) << setprecision(4) << todaies[j].pieces_per_second
+            << setw(8) << todaies[j].n_piece_locked
+            << setw(9) << setprecision(2) << todaies[j].finesse
+            << setw(7) << todaies[j].n_hold_used
+            << todaies[j].replay_name;
     }
-    else if(locked == 102)
+}
+
+void output_old_day_history()
+{
+    int size = oldies.size();
+
+    cout << endl << endl
+        << "--- Daily history of completed 40 Lines Race replays ("
+        << size << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8) << "Pieces"
+        << setw(9) << "Finesse" << setw(7) << "Holds" << setw(17) << "Date"
+        << setw(8) << "#" << "Difference";
+
+    for(int j = size - 1; j >= size - old_day_to_show; j--)
     {
-        pieces_102++;
+        int day_size = oldies[j].size;
+
+        cout << endl << setw(10)
+            << output_time((oldies[j].frames / day_size))
+            << setw(8) << setprecision(4)
+            << oldies[j].pieces_per_second / day_size
+            << setw(8) << setprecision(2)
+            << oldies[j].n_piece_locked / day_size
+            << setw(9) << setprecision(2)
+            << oldies[j].finesse / day_size
+            << setw(7) << oldies[j].n_hold_used / day_size
+            << setw(17) << month_date(oldies[j].date)
+            << setw(8) << day_size;
+
+        if(j != 0)
+        {
+            int previous_day_size = oldies[j - 1].size;
+
+            if(oldies[j - 1].frames /
+                previous_day_size > oldies[j].frames / day_size)
+            {
+                cout << "-" + to_float(oldies[j].difference / 60);
+            }
+            else
+            {
+                cout << "+" + to_float(oldies[j].difference / 60);
+            }
+        }
     }
-    else if(locked == 103)
+}
+
+void output_month_history()
+{
+    int size = monthies.size();
+
+    cout << endl << endl
+        << "--- Monthly history of completed 40 Lines Race replays ("
+        << monthies.size() << ") ---" << endl;
+
+    cout << setw(10) << "Time" << setw(8) << "PPS" << setw(8)
+        << "Pieces" << setw(9) << "Finesse" << setw(7) << "Holds"
+        << setw(11) << "Month" << setw(6) << "#" << setw(8) << "#/d"
+        << "Difference";
+
+    for(int j = size - 1; j >= size - month_to_show; j--)
     {
-        pieces_103++;
-    }
-    else
-    {
-        pieces_greater_103++;
+        int month_size = monthies[j].size;
+
+        cout << endl << setw(10)
+            << output_time((monthies[j].frames / month_size))
+            << setw(8) << setprecision(4)
+            << monthies[j].pieces_per_second / month_size
+            << setw(8) << setprecision(2)
+            << monthies[j].n_piece_locked / month_size
+            << setw(9) << setprecision(2)
+            << monthies[j].finesse / month_size
+            << setw(7) << monthies[j].n_hold_used / month_size
+            << setw(11) << monthies[j].month_str
+            << setw(6) << month_size
+            << setw(8) <<(float)monthies[j].size / monthies[j].day_count;
+
+        if(j != 0)
+        {
+            int previous_month_size = monthies[j - 1].size;
+
+            if(monthies[j - 1].frames / previous_month_size
+                > monthies[j].frames / month_size)
+            {
+                cout << "-" + to_float(monthies[j].difference / 60);
+            }
+            else
+            {
+                cout << "+" + to_float(monthies[j].difference / 60);
+            }
+        }
     }
 }

@@ -37,12 +37,10 @@ int main()
     {
         replay_names = get_replay_names();
 
-        t_start = clock();
-
-        cout << "------------------------" << endl
-            << "NullpoMino Replay Logger" << endl
-            << "Version 1.0" << endl
-            << "------------------------" << endl << endl;
+        cout << "----------------------------" << endl
+            << "- minolog                  -" << endl
+            << "- NullpoMino Replay Logger -" << endl
+            << "----------------------------" << endl << endl;
 
         old_day_iter = 0;
         month_iter = 0;
@@ -72,38 +70,76 @@ int main()
             if(goal == TYPE40 && lines >= 40 && !is_big && mode == LINE_RACE)
             {
                 num_40++;
+                per_n_set++;
 
                 update_piece_counts(i);
 
-                set_month_history(i, month_iter);
-                set_old_day_history(i, old_day_iter);
-                set_today_history(i, today_iter);
-                set_per_n_history(i, per_n_set, per_n_iter);
-                set_pb_history(i, pb_iter);
-                set_fin_pb_history(i, fin_iter);
+                if(set_month_history(i, month_iter))
+                {
+                    month_iter++;
+                }
+
+                if(set_old_day_history(i, old_day_iter))
+                {
+                    old_day_iter++;
+                }
+
+                if(set_today_history(i, today_iter))
+                {
+                    today_iter++;
+                }
+
+                if(set_per_n_history(i, per_n_set, per_n_iter))
+                {
+                    per_n_set = 0;
+                    per_n_iter++;
+                }
+
+                if(set_pb_history(i, pb_iter))
+                {
+                    pb_iter++;
+                }
+
+                if(set_fin_pb_history(i, fin_iter))
+                {
+                    fin_iter++;
+                }
             }
         }
 
         set_display_limits();
-
         display_header();
 
-        output_pb_history();
-        output_fin_pb_history();
-        output_per_n();
-        output_month_history();
-        output_old_day_history();
-        output_today_history();
-
-        end = ((double) (clock() - t_start) / CLOCKS_PER_SEC);
-
-        cout << endl << endl << end << " seconds";
-
-        t_start = 0;
-
-        if(auto_update == 1)
+        if(bests.size() > 0)
         {
-            cout << " -auto updating-" << endl;
+            output_pb_history();
+        }
+
+        if(finesse_bests.size() > 0)
+        {
+            output_fin_pb_history();
+        }
+
+        output_per_n();
+
+        if(monthies.size() > 0)
+        {
+            output_month_history();
+        }
+
+        if(oldies.size() > 0)
+        {
+            output_old_day_history();
+        }
+
+        if(todaies.size() > 0)
+        {
+            output_today_history();
+        }
+
+        if(auto_update)
+        {
+            cout << endl << endl << "-auto updating-" << endl;
 
             while(reset_t < (double) auto_time)
             {
@@ -115,7 +151,10 @@ int main()
         }
         else
         {
+            cout << endl << endl;
+            cout << "Press 'ENTER' to update. Type 'cmds' for commands.";
             cout << endl;
+
             take_input();
         }
 
