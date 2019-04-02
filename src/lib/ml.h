@@ -150,15 +150,15 @@ vector<string> get_replay_names();
 void check_for_stat(string, rep &);
 rep assign_from_replays(string &);
 
-void make_settings_file();
 void open_settings_file();
 void new_settings_file();
 void write_new_replays();
 
-void make_replays_file();
 void open_replay_file();
 void new_replay_file();
 
+void set_stats();
+void display_stats();
 void display_header();
 void show_cmd_options();
 void make_graph_pern();
@@ -188,5 +188,70 @@ void output_per_n();
 void output_today_history();
 void output_old_day_history();
 void output_month_history();
+
+
+const string MARATHON = "MARATHON";
+const string LINE_RACE = "LINERACE";
+const string OTHER = "NULL";
+
+const int TYPE20 = 0;
+const int TYPE40 = 1;
+const int TYPE10 = 3;
+
+vector<rep> replays;
+
+vector<string> replay_names;
+vector<string> imported_replays;
+vector<string> new_replays;
+
+vector<old_day> oldies;
+vector<month> monthies;
+vector<today> todaies;
+vector<per_n> stats;
+vector<pb> bests;
+vector<finesse_pb> finesse_bests;
+
+bool auto_update = 0;
+
+double all_frames_sum = 0;
+double _40_frames_sum = 0;
+
+double num_all = 0;
+double num_40 = 0;
+double hundred_count = 0;
+
+int pieces_sub_102 = 0;
+int pieces_102 = 0;
+int pieces_103 = 0;
+int pieces_greater_103 = 0;
+
+int per_n_count;
+int per_n_to_show;
+int pb_to_show;
+int fin_pb_to_show;
+int today_to_show;
+int today_tag;
+int old_day_to_show;
+int month_to_show;
+int auto_time;
+
+int lowest_finesse = INT_MAX;
+int lowest_frames = INT_MAX;
+
+int month_size = 0;
+int day_count = 0;
+int size_buf = 0;
+
+string month_buf;
+string day_buf;
+string date_buf;
+
+int old_day_iter = 0;
+int month_iter = 0;
+int today_iter = 0;
+int per_n_iter = 0;
+int per_n_set = 0;
+int pb_iter = 0;
+int fin_iter = 0;
 
 #endif
