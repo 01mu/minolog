@@ -178,7 +178,7 @@ void update_piece_counts(int j);
 bool set_fin_pb_history(int j, int u);
 bool set_pb_history(int j, int u);
 bool set_per_n_history(int j, int n, int k);
-bool set_today_history(int j, int s);
+bool set_today_history(int j, int s, string & date);
 bool set_old_day_history(int j, int d);
 bool set_month_history(int j, int l);
 
@@ -188,7 +188,6 @@ void output_per_n();
 void output_today_history();
 void output_old_day_history();
 void output_month_history();
-
 
 const string MARATHON = "MARATHON";
 const string LINE_RACE = "LINERACE";
@@ -253,5 +252,7 @@ int per_n_iter = 0;
 int per_n_set = 0;
 int pb_iter = 0;
 int fin_iter = 0;
+
+int sec_groups[7];
 
 #endif

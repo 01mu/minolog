@@ -78,7 +78,7 @@ string num_to_month(string a)
     }
     else if(a == "05")
     {
-        month = "May.";
+        month = "May ";
     }
     else if(a == "06")
     {
@@ -238,8 +238,8 @@ vector<string> get_replay_names()
 
     vector<string> vector;
 
-    DIR *dir;
-    struct dirent *ent;
+    DIR * dir;
+    struct dirent * ent;
 
     if((dir = opendir(path.c_str())) != NULL)
     {
@@ -283,8 +283,8 @@ vector<string> get_replay_names()
 
     vector<string> vector;
 
-    DIR *dir;
-    struct dirent *ent;
+    DIR * dir;
+    struct dirent * ent;
 
     if((dir = opendir(path.c_str())) != NULL)
     {
@@ -769,10 +769,18 @@ void set_stats()
     int lines;
     bool is_big;
     string mode;
+    double seconds;
+    string date = convert_date();
+
+    for(int i = 0; i < 7; i++)
+    {
+        sec_groups[i] = 0;
+    }
 
     for(int i = 0; i < replays.size(); i++)
     {
         cur_rep = replays[i];
+        seconds = cur_rep.frames / 60;
 
         all_frames_sum += cur_rep.frames;
         num_all++;
@@ -784,6 +792,35 @@ void set_stats()
 
         if(goal == TYPE40 && lines >= 40 && !is_big && mode == LINE_RACE)
         {
+            if(seconds >= 60)
+            {
+                sec_groups[0]++;
+            }
+            else if(seconds >= 50 && seconds < 60)
+            {
+                sec_groups[1]++;
+            }
+            else if(seconds >= 45 && seconds < 50)
+            {
+                sec_groups[2]++;
+            }
+            else if(seconds >= 40 && seconds < 45)
+            {
+                sec_groups[3]++;
+            }
+            else if(seconds >= 35 && seconds < 40)
+            {
+                sec_groups[4]++;
+            }
+            else if(seconds >= 30 && seconds < 35)
+            {
+                sec_groups[5]++;
+            }
+            else if(seconds >= 27.5 && seconds  < 30)
+            {
+                sec_groups[6]++;
+            }
+
             num_40++;
             per_n_set++;
 
@@ -799,7 +836,7 @@ void set_stats()
                 old_day_iter++;
             }
 
-            if(set_today_history(i, today_iter))
+            if(set_today_history(i, today_iter, date))
             {
                 today_iter++;
             }
@@ -940,11 +977,20 @@ void display_header()
         << "= 102 pieces: " + to_int(pieces_102) << " ("
         << to_float(pieces_102_per) << "%)" << endl;
 
-    cout << setw(45) << " " << "= 103 pieces: "
-        + to_int(pieces_103) << " ("
-        << to_float(pieces_103_per) << "%)" << endl;
 
-    cout << setw(45) << " " << "> 103 pieces: "
+    cout << setw(45) << "";
+
+    /*cout << "60: " + to_int(sec_groups[0])
+        + " | 50-60: " + to_int(sec_groups[1])
+        + " | 45-50: " + to_int(sec_groups[2]);*/
+
+    cout << "= 103 pieces: "
+            + to_int(pieces_103) << " ("
+            << to_float(pieces_103_per) << "%)" << endl;
+
+    cout << setw(45) << "";
+
+    cout << "> 103 pieces: "
         + to_int(pieces_greater_103) << " ("
         << to_float(pieces_greater_103_per) << "%)" << endl << endl;
 }
@@ -1595,11 +1641,11 @@ bool set_per_n_history(int j, int n, int k)
  *          s = today's replays iteration count
  * returns: whether to update today's replays iteration count
  */
-bool set_today_history(int j, int s)
+bool set_today_history(int j, int s, string & date)
 {
     bool update_iter = false;
 
-    if(replays[j].date == convert_date())
+    if(replays[j].date == date)
     {
         update_iter = true;
 
@@ -1924,7 +1970,7 @@ void output_month_history()
             n_prev_replays = monthies[j - 1].size;
 
             if(monthies[j - 1].frames / n_prev_replays
-                > monthies[j].frames / month_size)
+                > monthies[j].frames / n_month_replays)
             {
                 cout << "-" + to_float(monthies[j].difference / 60);
             }
